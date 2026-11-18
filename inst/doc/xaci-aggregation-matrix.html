@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+
+
+<title>The Aggregation Matrix: Every Spatial x Temporal Combination</title>
+
+<script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
+// be compatible with the behavior of Pandoc < 2.8).
+document.addEventListener('DOMContentLoaded', function(e) {
+  var hs = document.querySelectorAll("div.section[class*='level'] > :first-child");
+  var i, h, a;
+  for (i = 0; i < hs.length; i++) {
+    h = hs[i];
+    if (!/^h[1-6]$/i.test(h.tagName)) continue;  // it should be a header h1-h6
+    a = h.attributes;
+    while (a.length > 0) h.removeAttribute(a[0].name);
+  }
+});
+</script>
+
+<style type="text/css">
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+span.underline{text-decoration: underline;}
+div.column{display: inline-block; vertical-align: top; width: 50%;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+</style>
+
+
+
+<style type="text/css">
+code {
+white-space: pre;
+}
+.sourceCode {
+overflow: visible;
+}
+</style>
+<style type="text/css" data-origin="pandoc">
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+{ counter-reset: source-line 0; }
+pre.numberSource code > span
+{ position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+{ content: counter(source-line);
+position: relative; left: -1em; text-align: right; vertical-align: baseline;
+border: none; display: inline-block;
+-webkit-touch-callout: none; -webkit-user-select: none;
+-khtml-user-select: none; -moz-user-select: none;
+-ms-user-select: none; user-select: none;
+padding: 0 4px; width: 4em;
+color: #aaaaaa;
+}
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa; padding-left: 4px; }
+div.sourceCode
+{ }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } 
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.at { color: #7d9029; } 
+code span.bn { color: #40a070; } 
+code span.bu { color: #008000; } 
+code span.cf { color: #007020; font-weight: bold; } 
+code span.ch { color: #4070a0; } 
+code span.cn { color: #880000; } 
+code span.co { color: #60a0b0; font-style: italic; } 
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.do { color: #ba2121; font-style: italic; } 
+code span.dt { color: #902000; } 
+code span.dv { color: #40a070; } 
+code span.er { color: #ff0000; font-weight: bold; } 
+code span.ex { } 
+code span.fl { color: #40a070; } 
+code span.fu { color: #06287e; } 
+code span.im { color: #008000; font-weight: bold; } 
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.kw { color: #007020; font-weight: bold; } 
+code span.op { color: #666666; } 
+code span.ot { color: #007020; } 
+code span.pp { color: #bc7a00; } 
+code span.sc { color: #4070a0; } 
+code span.ss { color: #bb6688; } 
+code span.st { color: #4070a0; } 
+code span.va { color: #19177c; } 
+code span.vs { color: #4070a0; } 
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } 
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    var j = 0;
+    while (j < rules.length) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") {
+        j++;
+        continue;
+      }
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' && rule.style.backgroundColor === '') {
+        j++;
+        continue;
+      }
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
+
+
+
+
+<style type="text/css">body {
+background-color: #fff;
+margin: 1em auto;
+max-width: 700px;
+overflow: visible;
+padding-left: 2em;
+padding-right: 2em;
+font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+font-size: 14px;
+line-height: 1.35;
+}
+#TOC {
+clear: both;
+margin: 0 0 10px 10px;
+padding: 4px;
+width: 400px;
+border: 1px solid #CCCCCC;
+border-radius: 5px;
+background-color: #f6f6f6;
+font-size: 13px;
+line-height: 1.3;
+}
+#TOC .toctitle {
+font-weight: bold;
+font-size: 15px;
+margin-left: 5px;
+}
+#TOC ul {
+padding-left: 40px;
+margin-left: -1.5em;
+margin-top: 5px;
+margin-bottom: 5px;
+}
+#TOC ul ul {
+margin-left: -2em;
+}
+#TOC li {
+line-height: 16px;
+}
+table {
+margin: 1em auto;
+border-width: 1px;
+border-color: #DDDDDD;
+border-style: outset;
+border-collapse: collapse;
+}
+table th {
+border-width: 2px;
+padding: 5px;
+border-style: inset;
+}
+table td {
+border-width: 1px;
+border-style: inset;
+line-height: 18px;
+padding: 5px 5px;
+}
+table, table th, table td {
+border-left-style: none;
+border-right-style: none;
+}
+table thead, table tr.even {
+background-color: #f7f7f7;
+}
+p {
+margin: 0.5em 0;
+}
+blockquote {
+background-color: #f6f6f6;
+padding: 0.25em 0.75em;
+}
+hr {
+border-style: solid;
+border: none;
+border-top: 1px solid #777;
+margin: 28px 0;
+}
+dl {
+margin-left: 0;
+}
+dl dd {
+margin-bottom: 13px;
+margin-left: 13px;
+}
+dl dt {
+font-weight: bold;
+}
+ul {
+margin-top: 0;
+}
+ul li {
+list-style: circle outside;
+}
+ul ul {
+margin-bottom: 0;
+}
+pre, code {
+background-color: #f7f7f7;
+border-radius: 3px;
+color: #333;
+white-space: pre-wrap; 
+}
+pre {
+border-radius: 3px;
+margin: 5px 0px 10px 0px;
+padding: 10px;
+}
+pre:not([class]) {
+background-color: #f7f7f7;
+}
+code {
+font-family: Consolas, Monaco, 'Courier New', monospace;
+font-size: 85%;
+}
+p > code, li > code {
+padding: 2px 0px;
+}
+div.figure {
+text-align: center;
+}
+img {
+background-color: #FFFFFF;
+padding: 2px;
+border: 1px solid #DDDDDD;
+border-radius: 3px;
+border: 1px solid #CCCCCC;
+margin: 0 5px;
+}
+h1 {
+margin-top: 0;
+font-size: 35px;
+line-height: 40px;
+}
+h2 {
+border-bottom: 4px solid #f7f7f7;
+padding-top: 10px;
+padding-bottom: 2px;
+font-size: 145%;
+}
+h3 {
+border-bottom: 2px solid #f7f7f7;
+padding-top: 10px;
+font-size: 120%;
+}
+h4 {
+border-bottom: 1px solid #f7f7f7;
+margin-left: 8px;
+font-size: 105%;
+}
+h5, h6 {
+border-bottom: 1px solid #ccc;
+font-size: 105%;
+}
+a {
+color: #0033dd;
+text-decoration: none;
+}
+a:hover {
+color: #6666ff; }
+a:visited {
+color: #800080; }
+a:visited:hover {
+color: #BB00BB; }
+a[href^="http:"] {
+text-decoration: underline; }
+a[href^="https:"] {
+text-decoration: underline; }
+
+code > span.kw { color: #555; font-weight: bold; } 
+code > span.dt { color: #902000; } 
+code > span.dv { color: #40a070; } 
+code > span.bn { color: #d14; } 
+code > span.fl { color: #d14; } 
+code > span.ch { color: #d14; } 
+code > span.st { color: #d14; } 
+code > span.co { color: #888888; font-style: italic; } 
+code > span.ot { color: #007020; } 
+code > span.al { color: #ff0000; font-weight: bold; } 
+code > span.fu { color: #900; font-weight: bold; } 
+code > span.er { color: #a61717; background-color: #e3d2d2; } 
+</style>
+
+
+
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">The Aggregation Matrix: Every Spatial x
+Temporal Combination</h1>
+
+
+
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="fu">library</span>(xaci)</span></code></pre></div>
+<p><code>calculate_aci()</code> exposes two <strong>independent</strong>
+choices about how its output is aggregated:</p>
+<ul>
+<li><strong>Spatial</strong> aggregation, via <code>area</code> /
+<code>admin_level</code>: a single national scalar per period
+(<code>area = TRUE</code>), the full ERA5 grid
+(<code>area = FALSE</code>, <code>admin_level = NULL</code>, see
+<code>vignette(&quot;xaci-visualization&quot;)</code>), or one value per
+administrative unit (<code>admin_level = 1, 2, ...</code>, see
+<code>vignette(&quot;xaci-admin-levels&quot;)</code>).</li>
+<li><strong>Temporal</strong> aggregation, via <code>granularity</code>:
+<code>&quot;month&quot;</code>, <code>&quot;season&quot;</code>, <code>&quot;semester&quot;</code>, or
+<code>&quot;year&quot;</code> (see <code>?aggregate_granularity</code>).</li>
+</ul>
+<p>Because these two axes are resolved independently — the underlying
+grid-cell computation feeds all of them, and <code>granularity</code> is
+applied only at the very end — every combination of the three spatial
+modes and four granularities is valid. This vignette builds one small
+synthetic dataset, computes its components <strong>once</strong>, and
+then walks the full 3 x 4 matrix, showing what each combination looks
+like.</p>
+<div id="building-one-small-synthetic-dataset" class="section level2">
+<h2>Building one small synthetic dataset</h2>
+<p>Same pattern as <code>vignette(&quot;xaci-full-pipeline&quot;)</code>: a tiny 2
+x 2 ERA5-like grid, plus two synthetic PSMSL tide-gauge stations.</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a>build_synthetic_nc <span class="ot">&lt;-</span> <span class="cf">function</span>(path, var, unit, lon, lat, time_vec, origin, vals) {</span>
+<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a>  time_hours <span class="ot">&lt;-</span> <span class="fu">as.numeric</span>(<span class="fu">difftime</span>(time_vec, origin, <span class="at">units =</span> <span class="st">&quot;hours&quot;</span>))</span>
+<span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a>  dim_lon  <span class="ot">&lt;-</span> ncdf4<span class="sc">::</span><span class="fu">ncdim_def</span>(<span class="st">&quot;longitude&quot;</span>, <span class="st">&quot;degrees_east&quot;</span>, lon)</span>
+<span id="cb2-4"><a href="#cb2-4" tabindex="-1"></a>  dim_lat  <span class="ot">&lt;-</span> ncdf4<span class="sc">::</span><span class="fu">ncdim_def</span>(<span class="st">&quot;latitude&quot;</span>, <span class="st">&quot;degrees_north&quot;</span>, lat)</span>
+<span id="cb2-5"><a href="#cb2-5" tabindex="-1"></a>  dim_time <span class="ot">&lt;-</span> ncdf4<span class="sc">::</span><span class="fu">ncdim_def</span>(</span>
+<span id="cb2-6"><a href="#cb2-6" tabindex="-1"></a>    <span class="st">&quot;time&quot;</span>, <span class="fu">paste0</span>(<span class="st">&quot;hours since &quot;</span>, <span class="fu">format</span>(origin, <span class="st">&quot;%Y-%m-%d %H:%M:%S&quot;</span>)),</span>
+<span id="cb2-7"><a href="#cb2-7" tabindex="-1"></a>    time_hours, <span class="at">unlim =</span> <span class="cn">TRUE</span></span>
+<span id="cb2-8"><a href="#cb2-8" tabindex="-1"></a>  )</span>
+<span id="cb2-9"><a href="#cb2-9" tabindex="-1"></a>  ncvar <span class="ot">&lt;-</span> ncdf4<span class="sc">::</span><span class="fu">ncvar_def</span>(var, unit, <span class="fu">list</span>(dim_lon, dim_lat, dim_time),</span>
+<span id="cb2-10"><a href="#cb2-10" tabindex="-1"></a>                            <span class="at">missval =</span> <span class="cn">NA</span>, <span class="at">prec =</span> <span class="st">&quot;double&quot;</span>)</span>
+<span id="cb2-11"><a href="#cb2-11" tabindex="-1"></a>  nc <span class="ot">&lt;-</span> ncdf4<span class="sc">::</span><span class="fu">nc_create</span>(path, <span class="fu">list</span>(ncvar))</span>
+<span id="cb2-12"><a href="#cb2-12" tabindex="-1"></a>  ncdf4<span class="sc">::</span><span class="fu">ncvar_put</span>(nc, ncvar, vals)</span>
+<span id="cb2-13"><a href="#cb2-13" tabindex="-1"></a>  ncdf4<span class="sc">::</span><span class="fu">nc_close</span>(nc)</span>
+<span id="cb2-14"><a href="#cb2-14" tabindex="-1"></a>  <span class="fu">invisible</span>(path)</span>
+<span id="cb2-15"><a href="#cb2-15" tabindex="-1"></a>}</span>
+<span id="cb2-16"><a href="#cb2-16" tabindex="-1"></a></span>
+<span id="cb2-17"><a href="#cb2-17" tabindex="-1"></a>build_synthetic_mask <span class="ot">&lt;-</span> <span class="cf">function</span>(path, lon, lat) {</span>
+<span id="cb2-18"><a href="#cb2-18" tabindex="-1"></a>  dim_lon <span class="ot">&lt;-</span> ncdf4<span class="sc">::</span><span class="fu">ncdim_def</span>(<span class="st">&quot;longitude&quot;</span>, <span class="st">&quot;degrees_east&quot;</span>, lon)</span>
+<span id="cb2-19"><a href="#cb2-19" tabindex="-1"></a>  dim_lat <span class="ot">&lt;-</span> ncdf4<span class="sc">::</span><span class="fu">ncdim_def</span>(<span class="st">&quot;latitude&quot;</span>, <span class="st">&quot;degrees_north&quot;</span>, lat)</span>
+<span id="cb2-20"><a href="#cb2-20" tabindex="-1"></a>  var_mask <span class="ot">&lt;-</span> ncdf4<span class="sc">::</span><span class="fu">ncvar_def</span>(<span class="st">&quot;country&quot;</span>, <span class="st">&quot;1&quot;</span>, <span class="fu">list</span>(dim_lon, dim_lat),</span>
+<span id="cb2-21"><a href="#cb2-21" tabindex="-1"></a>                               <span class="at">missval =</span> <span class="cn">NA</span>, <span class="at">prec =</span> <span class="st">&quot;double&quot;</span>)</span>
+<span id="cb2-22"><a href="#cb2-22" tabindex="-1"></a>  nc <span class="ot">&lt;-</span> ncdf4<span class="sc">::</span><span class="fu">nc_create</span>(path, <span class="fu">list</span>(var_mask))</span>
+<span id="cb2-23"><a href="#cb2-23" tabindex="-1"></a>  ncdf4<span class="sc">::</span><span class="fu">ncvar_put</span>(nc, var_mask, <span class="fu">matrix</span>(<span class="dv">1</span>, <span class="fu">length</span>(lon), <span class="fu">length</span>(lat)))</span>
+<span id="cb2-24"><a href="#cb2-24" tabindex="-1"></a>  ncdf4<span class="sc">::</span><span class="fu">nc_close</span>(nc)</span>
+<span id="cb2-25"><a href="#cb2-25" tabindex="-1"></a>  <span class="fu">invisible</span>(path)</span>
+<span id="cb2-26"><a href="#cb2-26" tabindex="-1"></a>}</span>
+<span id="cb2-27"><a href="#cb2-27" tabindex="-1"></a></span>
+<span id="cb2-28"><a href="#cb2-28" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">11</span>)</span>
+<span id="cb2-29"><a href="#cb2-29" tabindex="-1"></a>lon      <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="sc">-</span><span class="dv">1</span>, <span class="dv">0</span>)</span>
+<span id="cb2-30"><a href="#cb2-30" tabindex="-1"></a>lat      <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="dv">43</span>, <span class="dv">44</span>)</span>
+<span id="cb2-31"><a href="#cb2-31" tabindex="-1"></a>origin   <span class="ot">&lt;-</span> <span class="fu">as.POSIXct</span>(<span class="st">&quot;1900-01-01 00:00:00&quot;</span>, <span class="at">tz =</span> <span class="st">&quot;UTC&quot;</span>)</span>
+<span id="cb2-32"><a href="#cb2-32" tabindex="-1"></a>time_vec <span class="ot">&lt;-</span> <span class="fu">seq</span>(<span class="fu">as.POSIXct</span>(<span class="st">&quot;2011-01-01 00:00&quot;</span>, <span class="at">tz =</span> <span class="st">&quot;UTC&quot;</span>),</span>
+<span id="cb2-33"><a href="#cb2-33" tabindex="-1"></a>                <span class="fu">as.POSIXct</span>(<span class="st">&quot;2014-12-31 23:00&quot;</span>, <span class="at">tz =</span> <span class="st">&quot;UTC&quot;</span>), <span class="at">by =</span> <span class="st">&quot;hour&quot;</span>)</span>
+<span id="cb2-34"><a href="#cb2-34" tabindex="-1"></a>nlo <span class="ot">&lt;-</span> <span class="fu">length</span>(lon); nla <span class="ot">&lt;-</span> <span class="fu">length</span>(lat); nt <span class="ot">&lt;-</span> <span class="fu">length</span>(time_vec)</span>
+<span id="cb2-35"><a href="#cb2-35" tabindex="-1"></a></span>
+<span id="cb2-36"><a href="#cb2-36" tabindex="-1"></a>trend      <span class="ot">&lt;-</span> <span class="fu">seq_len</span>(nt) <span class="sc">/</span> nt   <span class="co"># mild warming/drying trend</span></span>
+<span id="cb2-37"><a href="#cb2-37" tabindex="-1"></a>seasonal_t <span class="ot">&lt;-</span> <span class="dv">288</span> <span class="sc">+</span> <span class="dv">10</span> <span class="sc">*</span> <span class="fu">sin</span>(<span class="dv">2</span> <span class="sc">*</span> pi <span class="sc">*</span> <span class="fu">seq_len</span>(nt) <span class="sc">/</span> (<span class="dv">24</span> <span class="sc">*</span> <span class="dv">365</span>)) <span class="sc">+</span> <span class="fl">0.6</span> <span class="sc">*</span> trend</span>
+<span id="cb2-38"><a href="#cb2-38" tabindex="-1"></a></span>
+<span id="cb2-39"><a href="#cb2-39" tabindex="-1"></a>t2m_vals <span class="ot">&lt;-</span> <span class="fu">array</span>(<span class="cn">NA_real_</span>, <span class="fu">c</span>(nlo, nla, nt))</span>
+<span id="cb2-40"><a href="#cb2-40" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="fu">seq_len</span>(nlo)) <span class="cf">for</span> (j <span class="cf">in</span> <span class="fu">seq_len</span>(nla))</span>
+<span id="cb2-41"><a href="#cb2-41" tabindex="-1"></a>  t2m_vals[i, j, ] <span class="ot">&lt;-</span> seasonal_t <span class="sc">+</span> (i <span class="sc">+</span> j) <span class="sc">+</span> <span class="fu">rnorm</span>(nt, <span class="at">sd =</span> <span class="fl">1.5</span>)</span>
+<span id="cb2-42"><a href="#cb2-42" tabindex="-1"></a></span>
+<span id="cb2-43"><a href="#cb2-43" tabindex="-1"></a>tp_vals <span class="ot">&lt;-</span> <span class="fu">array</span>(<span class="dv">0</span>, <span class="fu">c</span>(nlo, nla, nt))</span>
+<span id="cb2-44"><a href="#cb2-44" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="fu">seq_len</span>(nlo)) <span class="cf">for</span> (j <span class="cf">in</span> <span class="fu">seq_len</span>(nla)) {</span>
+<span id="cb2-45"><a href="#cb2-45" tabindex="-1"></a>  rain_hours <span class="ot">&lt;-</span> <span class="fu">rbinom</span>(nt, <span class="dv">1</span>, <span class="fl">0.08</span> <span class="sc">*</span> (<span class="dv">1</span> <span class="sc">-</span> <span class="fl">0.3</span> <span class="sc">*</span> trend))</span>
+<span id="cb2-46"><a href="#cb2-46" tabindex="-1"></a>  tp_vals[i, j, ] <span class="ot">&lt;-</span> rain_hours <span class="sc">*</span> <span class="fu">rexp</span>(nt, <span class="at">rate =</span> <span class="dv">800</span>)</span>
+<span id="cb2-47"><a href="#cb2-47" tabindex="-1"></a>}</span>
+<span id="cb2-48"><a href="#cb2-48" tabindex="-1"></a></span>
+<span id="cb2-49"><a href="#cb2-49" tabindex="-1"></a>u10_vals <span class="ot">&lt;-</span> <span class="fu">array</span>(<span class="fu">rnorm</span>(nlo <span class="sc">*</span> nla <span class="sc">*</span> nt, <span class="at">mean =</span> <span class="dv">3</span>, <span class="at">sd =</span> <span class="dv">4</span>), <span class="fu">c</span>(nlo, nla, nt))</span>
+<span id="cb2-50"><a href="#cb2-50" tabindex="-1"></a>v10_vals <span class="ot">&lt;-</span> <span class="fu">array</span>(<span class="fu">rnorm</span>(nlo <span class="sc">*</span> nla <span class="sc">*</span> nt, <span class="at">mean =</span> <span class="dv">1</span>, <span class="at">sd =</span> <span class="dv">4</span>), <span class="fu">c</span>(nlo, nla, nt))</span>
+<span id="cb2-51"><a href="#cb2-51" tabindex="-1"></a></span>
+<span id="cb2-52"><a href="#cb2-52" tabindex="-1"></a>t2m_file  <span class="ot">&lt;-</span> <span class="fu">tempfile</span>(<span class="at">fileext =</span> <span class="st">&quot;.nc&quot;</span>)</span>
+<span id="cb2-53"><a href="#cb2-53" tabindex="-1"></a>tp_file   <span class="ot">&lt;-</span> <span class="fu">tempfile</span>(<span class="at">fileext =</span> <span class="st">&quot;.nc&quot;</span>)</span>
+<span id="cb2-54"><a href="#cb2-54" tabindex="-1"></a>u10_file  <span class="ot">&lt;-</span> <span class="fu">tempfile</span>(<span class="at">fileext =</span> <span class="st">&quot;.nc&quot;</span>)</span>
+<span id="cb2-55"><a href="#cb2-55" tabindex="-1"></a>v10_file  <span class="ot">&lt;-</span> <span class="fu">tempfile</span>(<span class="at">fileext =</span> <span class="st">&quot;.nc&quot;</span>)</span>
+<span id="cb2-56"><a href="#cb2-56" tabindex="-1"></a>mask_file <span class="ot">&lt;-</span> <span class="fu">tempfile</span>(<span class="at">fileext =</span> <span class="st">&quot;.nc&quot;</span>)</span>
+<span id="cb2-57"><a href="#cb2-57" tabindex="-1"></a></span>
+<span id="cb2-58"><a href="#cb2-58" tabindex="-1"></a><span class="fu">build_synthetic_nc</span>(t2m_file, <span class="st">&quot;t2m&quot;</span>, <span class="st">&quot;K&quot;</span>,     lon, lat, time_vec, origin, t2m_vals)</span>
+<span id="cb2-59"><a href="#cb2-59" tabindex="-1"></a><span class="fu">build_synthetic_nc</span>(tp_file,  <span class="st">&quot;tp&quot;</span>,  <span class="st">&quot;m&quot;</span>,     lon, lat, time_vec, origin, tp_vals)</span>
+<span id="cb2-60"><a href="#cb2-60" tabindex="-1"></a><span class="fu">build_synthetic_nc</span>(u10_file, <span class="st">&quot;u10&quot;</span>, <span class="st">&quot;m s-1&quot;</span>, lon, lat, time_vec, origin, u10_vals)</span>
+<span id="cb2-61"><a href="#cb2-61" tabindex="-1"></a><span class="fu">build_synthetic_nc</span>(v10_file, <span class="st">&quot;v10&quot;</span>, <span class="st">&quot;m s-1&quot;</span>, lon, lat, time_vec, origin, v10_vals)</span>
+<span id="cb2-62"><a href="#cb2-62" tabindex="-1"></a><span class="fu">build_synthetic_mask</span>(mask_file, lon, lat)</span>
+<span id="cb2-63"><a href="#cb2-63" tabindex="-1"></a></span>
+<span id="cb2-64"><a href="#cb2-64" tabindex="-1"></a>month_frac <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&quot;0417&quot;</span>, <span class="st">&quot;125&quot;</span>, <span class="st">&quot;2083&quot;</span>, <span class="st">&quot;2917&quot;</span>, <span class="st">&quot;375&quot;</span>, <span class="st">&quot;4583&quot;</span>,</span>
+<span id="cb2-65"><a href="#cb2-65" tabindex="-1"></a>                <span class="st">&quot;5417&quot;</span>, <span class="st">&quot;625&quot;</span>, <span class="st">&quot;7083&quot;</span>, <span class="st">&quot;7917&quot;</span>, <span class="st">&quot;875&quot;</span>, <span class="st">&quot;9583&quot;</span>)</span>
+<span id="cb2-66"><a href="#cb2-66" tabindex="-1"></a>build_synthetic_psmsl_station <span class="ot">&lt;-</span> <span class="cf">function</span>(dir, station_id, years,</span>
+<span id="cb2-67"><a href="#cb2-67" tabindex="-1"></a>                                          base_level, trend_mm_per_year) {</span>
+<span id="cb2-68"><a href="#cb2-68" tabindex="-1"></a>  lines <span class="ot">&lt;-</span> <span class="fu">character</span>(<span class="dv">0</span>)</span>
+<span id="cb2-69"><a href="#cb2-69" tabindex="-1"></a>  <span class="cf">for</span> (y <span class="cf">in</span> years) {</span>
+<span id="cb2-70"><a href="#cb2-70" tabindex="-1"></a>    <span class="cf">for</span> (m <span class="cf">in</span> <span class="fu">seq_len</span>(<span class="dv">12</span>)) {</span>
+<span id="cb2-71"><a href="#cb2-71" tabindex="-1"></a>      level <span class="ot">&lt;-</span> base_level <span class="sc">+</span> trend_mm_per_year <span class="sc">*</span> (y <span class="sc">-</span> years[<span class="dv">1</span>]) <span class="sc">+</span> <span class="fu">rnorm</span>(<span class="dv">1</span>, <span class="at">sd =</span> <span class="dv">15</span>)</span>
+<span id="cb2-72"><a href="#cb2-72" tabindex="-1"></a>      lines <span class="ot">&lt;-</span> <span class="fu">c</span>(lines, <span class="fu">sprintf</span>(<span class="st">&quot;%d.%s;%.1f;0;000&quot;</span>, y, month_frac[m], level))</span>
+<span id="cb2-73"><a href="#cb2-73" tabindex="-1"></a>    }</span>
+<span id="cb2-74"><a href="#cb2-74" tabindex="-1"></a>  }</span>
+<span id="cb2-75"><a href="#cb2-75" tabindex="-1"></a>  <span class="fu">writeLines</span>(lines, <span class="fu">file.path</span>(dir, <span class="fu">paste0</span>(station_id, <span class="st">&quot;.txt&quot;</span>)))</span>
+<span id="cb2-76"><a href="#cb2-76" tabindex="-1"></a>}</span>
+<span id="cb2-77"><a href="#cb2-77" tabindex="-1"></a></span>
+<span id="cb2-78"><a href="#cb2-78" tabindex="-1"></a>psmsl_dir <span class="ot">&lt;-</span> <span class="fu">tempfile</span>(<span class="st">&quot;psmsl_&quot;</span>)</span>
+<span id="cb2-79"><a href="#cb2-79" tabindex="-1"></a><span class="fu">dir.create</span>(psmsl_dir)</span>
+<span id="cb2-80"><a href="#cb2-80" tabindex="-1"></a><span class="fu">build_synthetic_psmsl_station</span>(psmsl_dir, <span class="dv">1</span>,  <span class="dv">2011</span><span class="sc">:</span><span class="dv">2014</span>, <span class="at">base_level =</span> <span class="dv">7020</span>, <span class="at">trend_mm_per_year =</span> <span class="dv">3</span>)</span>
+<span id="cb2-81"><a href="#cb2-81" tabindex="-1"></a><span class="fu">build_synthetic_psmsl_station</span>(psmsl_dir, <span class="dv">61</span>, <span class="dv">2011</span><span class="sc">:</span><span class="dv">2014</span>, <span class="at">base_level =</span> <span class="dv">6980</span>, <span class="at">trend_mm_per_year =</span> <span class="dv">4</span>)</span>
+<span id="cb2-82"><a href="#cb2-82" tabindex="-1"></a></span>
+<span id="cb2-83"><a href="#cb2-83" tabindex="-1"></a><span class="co"># See vignette(&quot;xaci-components&quot;) for why reference_period needs &gt;= 3 years.</span></span>
+<span id="cb2-84"><a href="#cb2-84" tabindex="-1"></a>reference_period <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&quot;2011-01-01&quot;</span>, <span class="st">&quot;2013-12-31&quot;</span>)  <span class="co"># 3 years</span></span>
+<span id="cb2-85"><a href="#cb2-85" tabindex="-1"></a>study_period      <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&quot;2011-01-01&quot;</span>, <span class="st">&quot;2014-12-31&quot;</span>)  <span class="co"># 4 years</span></span>
+<span id="cb2-86"><a href="#cb2-86" tabindex="-1"></a></span>
+<span id="cb2-87"><a href="#cb2-87" tabindex="-1"></a>cache_dir <span class="ot">&lt;-</span> <span class="fu">tempfile</span>(<span class="st">&quot;aci_cache_&quot;</span>)</span>
+<span id="cb2-88"><a href="#cb2-88" tabindex="-1"></a><span class="fu">dir.create</span>(cache_dir)</span></code></pre></div>
+</div>
+<div id="step-1-compute-every-component-once" class="section level2">
+<h2>Step 1 — compute every component once</h2>
+<p>The six components (<code>t90</code>, <code>t10</code>,
+<code>precipitation</code>, <code>drought</code>, <code>wind</code>,
+<code>sealevel</code>) are computed from the raw ERA5/PSMSL data
+<strong>before</strong> any spatial or temporal aggregation is applied.
+Caching them with <code>save = TRUE</code> lets every combination
+explored below reuse the exact same computation — this is the same
+<code>save</code> / <code>computed_components</code> pattern shown in
+<code>vignette(&quot;xaci-components&quot;)</code>, just used here across the
+whole matrix instead of a single re-run:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a><span class="fu">invisible</span>(<span class="fu">calculate_aci</span>(</span>
+<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a>  <span class="at">country_abbrev           =</span> <span class="st">&quot;FRA&quot;</span>,</span>
+<span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a>  <span class="at">study_period               =</span> study_period,</span>
+<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a>  <span class="at">reference_period            =</span> reference_period,</span>
+<span id="cb3-5"><a href="#cb3-5" tabindex="-1"></a>  <span class="at">temperature_data_path      =</span> t2m_file,</span>
+<span id="cb3-6"><a href="#cb3-6" tabindex="-1"></a>  <span class="at">precipitation_data_path    =</span> tp_file,</span>
+<span id="cb3-7"><a href="#cb3-7" tabindex="-1"></a>  <span class="at">wind_u10_data_path          =</span> u10_file,</span>
+<span id="cb3-8"><a href="#cb3-8" tabindex="-1"></a>  <span class="at">wind_v10_data_path          =</span> v10_file,</span>
+<span id="cb3-9"><a href="#cb3-9" tabindex="-1"></a>  <span class="at">mask_data_path               =</span> mask_file,</span>
+<span id="cb3-10"><a href="#cb3-10" tabindex="-1"></a>  <span class="at">sealevel_dir                  =</span> psmsl_dir,</span>
+<span id="cb3-11"><a href="#cb3-11" tabindex="-1"></a>  <span class="at">granularity                    =</span> <span class="st">&quot;month&quot;</span>,   <span class="co"># irrelevant here: not cached</span></span>
+<span id="cb3-12"><a href="#cb3-12" tabindex="-1"></a>  <span class="at">area                            =</span> <span class="cn">TRUE</span>,       <span class="co"># irrelevant here: not cached</span></span>
+<span id="cb3-13"><a href="#cb3-13" tabindex="-1"></a>  <span class="at">admin_level                     =</span> <span class="cn">NULL</span>,</span>
+<span id="cb3-14"><a href="#cb3-14" tabindex="-1"></a>  <span class="at">save                             =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb3-15"><a href="#cb3-15" tabindex="-1"></a>  <span class="at">save_dir                         =</span> cache_dir,</span>
+<span id="cb3-16"><a href="#cb3-16" tabindex="-1"></a>  <span class="at">computed_components              =</span> <span class="cn">FALSE</span></span>
+<span id="cb3-17"><a href="#cb3-17" tabindex="-1"></a>))</span></code></pre></div>
+<p>Note the two comments above: <code>granularity</code> and
+<code>area</code>/<code>admin_level</code> are <strong>not</strong> part
+of what gets cached at this step — only the raw, unstandardised
+components are (see <code>?calculate_aci</code>, “computed_components”
+section). Every call below reuses this same cache via
+<code>computed_components = TRUE</code>, and can freely vary spatial
+mode and granularity without recomputing anything from the NetCDF/PSMSL
+files.</p>
+</div>
+<div id="pre-seeding-the-administrative-cache-no-network" class="section level2">
+<h2>Pre-seeding the administrative cache (no network)</h2>
+<p>Administrative aggregation normally needs
+<code>build_admin_mask()</code> /
+<code>assign_sealevel_to_admin()</code>, which download real GADM
+polygons and a coastline layer over the network (see
+<code>vignette(&quot;xaci-admin-levels&quot;)</code>). To demonstrate the
+administrative spatial mode here without network access, we save
+hand-built <code>admin_mask</code> / <code>admin_assignment</code>
+objects directly at the cache path <code>calculate_aci()</code> expects
+— the exact same trick <code>vignette(&quot;xaci-admin-levels&quot;)</code> uses
+at the component level, just applied one level up so
+<code>calculate_aci()</code> itself can be called directly:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a>admin_level <span class="ot">&lt;-</span> <span class="dv">1</span></span>
+<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a></span>
+<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a>synthetic_admin_mask <span class="ot">&lt;-</span> <span class="fu">list</span>(</span>
+<span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a>  <span class="at">units   =</span> <span class="fu">c</span>(<span class="st">&quot;A&quot;</span>, <span class="st">&quot;B&quot;</span>),</span>
+<span id="cb4-5"><a href="#cb4-5" tabindex="-1"></a>  <span class="at">lon     =</span> lon,</span>
+<span id="cb4-6"><a href="#cb4-6" tabindex="-1"></a>  <span class="at">lat     =</span> lat,</span>
+<span id="cb4-7"><a href="#cb4-7" tabindex="-1"></a>  <span class="at">weights =</span> <span class="fu">list</span>(</span>
+<span id="cb4-8"><a href="#cb4-8" tabindex="-1"></a>    <span class="st">`</span><span class="at">1</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">c</span>(<span class="at">A =</span> <span class="dv">1</span>, <span class="at">B =</span> <span class="dv">0</span>),   <span class="co"># cell (lon[1], lat[1])</span></span>
+<span id="cb4-9"><a href="#cb4-9" tabindex="-1"></a>    <span class="st">`</span><span class="at">2</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">c</span>(<span class="at">A =</span> <span class="dv">0</span>, <span class="at">B =</span> <span class="dv">1</span>),   <span class="co"># cell (lon[1], lat[2])</span></span>
+<span id="cb4-10"><a href="#cb4-10" tabindex="-1"></a>    <span class="st">`</span><span class="at">3</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">c</span>(<span class="at">A =</span> <span class="dv">1</span>, <span class="at">B =</span> <span class="dv">0</span>),   <span class="co"># cell (lon[2], lat[1])</span></span>
+<span id="cb4-11"><a href="#cb4-11" tabindex="-1"></a>    <span class="st">`</span><span class="at">4</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">c</span>(<span class="at">A =</span> <span class="dv">0</span>, <span class="at">B =</span> <span class="dv">1</span>)    <span class="co"># cell (lon[2], lat[2])</span></span>
+<span id="cb4-12"><a href="#cb4-12" tabindex="-1"></a>  )</span>
+<span id="cb4-13"><a href="#cb4-13" tabindex="-1"></a>)</span>
+<span id="cb4-14"><a href="#cb4-14" tabindex="-1"></a>synthetic_admin_assignment <span class="ot">&lt;-</span> <span class="fu">list</span>(</span>
+<span id="cb4-15"><a href="#cb4-15" tabindex="-1"></a>  <span class="at">station_ids =</span> <span class="fu">list</span>(<span class="at">A =</span> <span class="dv">1</span>, <span class="at">B =</span> <span class="dv">61</span>),   <span class="co"># PSMSL IDs: Brest -&gt; A, Marseille -&gt; B</span></span>
+<span id="cb4-16"><a href="#cb4-16" tabindex="-1"></a>  <span class="at">factors     =</span> <span class="fu">c</span>(<span class="at">A =</span> <span class="fl">0.6</span>, <span class="at">B =</span> <span class="fl">0.3</span>)    <span class="co"># coastal fraction per region</span></span>
+<span id="cb4-17"><a href="#cb4-17" tabindex="-1"></a>)</span>
+<span id="cb4-18"><a href="#cb4-18" tabindex="-1"></a></span>
+<span id="cb4-19"><a href="#cb4-19" tabindex="-1"></a>admin_tag <span class="ot">&lt;-</span> <span class="fu">sprintf</span>(<span class="st">&quot;FRA_L%d&quot;</span>, admin_level)</span>
+<span id="cb4-20"><a href="#cb4-20" tabindex="-1"></a><span class="fu">saveRDS</span>(synthetic_admin_mask,</span>
+<span id="cb4-21"><a href="#cb4-21" tabindex="-1"></a>       <span class="fu">file.path</span>(cache_dir, <span class="fu">paste0</span>(<span class="st">&quot;admin_mask_&quot;</span>, admin_tag, <span class="st">&quot;.rds&quot;</span>)))</span>
+<span id="cb4-22"><a href="#cb4-22" tabindex="-1"></a><span class="fu">saveRDS</span>(synthetic_admin_assignment,</span>
+<span id="cb4-23"><a href="#cb4-23" tabindex="-1"></a>       <span class="fu">file.path</span>(cache_dir, <span class="fu">paste0</span>(<span class="st">&quot;admin_assignment_&quot;</span>, admin_tag, <span class="st">&quot;.rds&quot;</span>)))</span></code></pre></div>
+<p>With both <code>.rds</code> files in place, any
+<code>calculate_aci(..., admin_level = 1, computed_components = TRUE)</code>
+call below will pick them up directly instead of trying to build them —
+no network call, no <code>geodata</code>/<code>rnaturalearth</code>
+lookup.</p>
+</div>
+<div id="the-three-spatial-modes-one-temporal-granularity" class="section level2">
+<h2>The three spatial modes, one temporal granularity</h2>
+<p>Fixing <code>granularity = &quot;month&quot;</code>, here is what each spatial
+mode returns:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a>national_monthly <span class="ot">&lt;-</span> <span class="fu">calculate_aci</span>(</span>
+<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a>  <span class="at">country_abbrev =</span> <span class="st">&quot;FRA&quot;</span>, <span class="at">study_period =</span> study_period, <span class="at">reference_period =</span> reference_period,</span>
+<span id="cb5-3"><a href="#cb5-3" tabindex="-1"></a>  <span class="at">temperature_data_path      =</span> t2m_file,</span>
+<span id="cb5-4"><a href="#cb5-4" tabindex="-1"></a>  <span class="at">precipitation_data_path    =</span> tp_file,</span>
+<span id="cb5-5"><a href="#cb5-5" tabindex="-1"></a>  <span class="at">wind_u10_data_path          =</span> u10_file,</span>
+<span id="cb5-6"><a href="#cb5-6" tabindex="-1"></a>  <span class="at">wind_v10_data_path          =</span> v10_file,</span>
+<span id="cb5-7"><a href="#cb5-7" tabindex="-1"></a>  <span class="at">mask_data_path               =</span> mask_file,</span>
+<span id="cb5-8"><a href="#cb5-8" tabindex="-1"></a>  <span class="at">granularity =</span> <span class="st">&quot;month&quot;</span>, <span class="at">area =</span> <span class="cn">TRUE</span>, <span class="at">admin_level =</span> <span class="cn">NULL</span>,</span>
+<span id="cb5-9"><a href="#cb5-9" tabindex="-1"></a>  <span class="at">computed_components =</span> <span class="cn">TRUE</span>, <span class="at">load_dir =</span> cache_dir</span>
+<span id="cb5-10"><a href="#cb5-10" tabindex="-1"></a>)</span>
+<span id="cb5-11"><a href="#cb5-11" tabindex="-1"></a><span class="fu">class</span>(national_monthly); <span class="fu">dim</span>(national_monthly)</span>
+<span id="cb5-12"><a href="#cb5-12" tabindex="-1"></a><span class="co">#&gt; [1] &quot;data.frame&quot;</span></span>
+<span id="cb5-13"><a href="#cb5-13" tabindex="-1"></a><span class="co">#&gt; [1] 48  7</span></span>
+<span id="cb5-14"><a href="#cb5-14" tabindex="-1"></a><span class="fu">head</span>(national_monthly, <span class="dv">2</span>)</span>
+<span id="cb5-15"><a href="#cb5-15" tabindex="-1"></a><span class="co">#&gt;            drought wind precipitation       t10        t90   sealevel        ACI</span></span>
+<span id="cb5-16"><a href="#cb5-16" tabindex="-1"></a><span class="co">#&gt; 2011-01 -0.9954027    0     0.9008374 0.9203157 -0.8431515  0.6340295 -0.3329282</span></span>
+<span id="cb5-17"><a href="#cb5-17" tabindex="-1"></a><span class="co">#&gt; 2011-02 -1.0492241    0     0.9040871 0.9443331 -1.0830902 -1.1163822 -0.4607378</span></span></code></pre></div>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a>grid_monthly <span class="ot">&lt;-</span> <span class="fu">calculate_aci</span>(</span>
+<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a>  <span class="at">country_abbrev =</span> <span class="st">&quot;FRA&quot;</span>, <span class="at">study_period =</span> study_period, <span class="at">reference_period =</span> reference_period,</span>
+<span id="cb6-3"><a href="#cb6-3" tabindex="-1"></a>  <span class="at">temperature_data_path      =</span> t2m_file,</span>
+<span id="cb6-4"><a href="#cb6-4" tabindex="-1"></a>  <span class="at">precipitation_data_path    =</span> tp_file,</span>
+<span id="cb6-5"><a href="#cb6-5" tabindex="-1"></a>  <span class="at">wind_u10_data_path          =</span> u10_file,</span>
+<span id="cb6-6"><a href="#cb6-6" tabindex="-1"></a>  <span class="at">wind_v10_data_path          =</span> v10_file,</span>
+<span id="cb6-7"><a href="#cb6-7" tabindex="-1"></a>  <span class="at">mask_data_path               =</span> mask_file,</span>
+<span id="cb6-8"><a href="#cb6-8" tabindex="-1"></a>  <span class="at">granularity =</span> <span class="st">&quot;month&quot;</span>, <span class="at">area =</span> <span class="cn">FALSE</span>, <span class="at">admin_level =</span> <span class="cn">NULL</span>, <span class="at">max_dist_km =</span> <span class="dv">800</span>,</span>
+<span id="cb6-9"><a href="#cb6-9" tabindex="-1"></a>  <span class="at">computed_components =</span> <span class="cn">TRUE</span>, <span class="at">load_dir =</span> cache_dir</span>
+<span id="cb6-10"><a href="#cb6-10" tabindex="-1"></a>)</span>
+<span id="cb6-11"><a href="#cb6-11" tabindex="-1"></a><span class="fu">class</span>(grid_monthly); <span class="fu">dim</span>(grid_monthly<span class="sc">$</span>ACI)   <span class="co"># [lon x lat x time]</span></span>
+<span id="cb6-12"><a href="#cb6-12" tabindex="-1"></a><span class="co">#&gt; [1] &quot;list&quot;</span></span>
+<span id="cb6-13"><a href="#cb6-13" tabindex="-1"></a><span class="co">#&gt; [1]  2  2 48</span></span></code></pre></div>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a>admin_monthly <span class="ot">&lt;-</span> <span class="fu">calculate_aci</span>(</span>
+<span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a>  <span class="at">country_abbrev =</span> <span class="st">&quot;FRA&quot;</span>, <span class="at">study_period =</span> study_period, <span class="at">reference_period =</span> reference_period,</span>
+<span id="cb7-3"><a href="#cb7-3" tabindex="-1"></a>  <span class="at">temperature_data_path      =</span> t2m_file,</span>
+<span id="cb7-4"><a href="#cb7-4" tabindex="-1"></a>  <span class="at">precipitation_data_path    =</span> tp_file,</span>
+<span id="cb7-5"><a href="#cb7-5" tabindex="-1"></a>  <span class="at">wind_u10_data_path          =</span> u10_file,</span>
+<span id="cb7-6"><a href="#cb7-6" tabindex="-1"></a>  <span class="at">wind_v10_data_path          =</span> v10_file,</span>
+<span id="cb7-7"><a href="#cb7-7" tabindex="-1"></a>  <span class="at">mask_data_path               =</span> mask_file,</span>
+<span id="cb7-8"><a href="#cb7-8" tabindex="-1"></a>  <span class="at">granularity =</span> <span class="st">&quot;month&quot;</span>, <span class="at">admin_level =</span> admin_level,</span>
+<span id="cb7-9"><a href="#cb7-9" tabindex="-1"></a>  <span class="at">computed_components =</span> <span class="cn">TRUE</span>, <span class="at">load_dir =</span> cache_dir, <span class="at">save_dir =</span> cache_dir</span>
+<span id="cb7-10"><a href="#cb7-10" tabindex="-1"></a>)</span>
+<span id="cb7-11"><a href="#cb7-11" tabindex="-1"></a><span class="fu">class</span>(admin_monthly); <span class="fu">dim</span>(admin_monthly)</span>
+<span id="cb7-12"><a href="#cb7-12" tabindex="-1"></a><span class="co">#&gt; [1] &quot;data.frame&quot;</span></span>
+<span id="cb7-13"><a href="#cb7-13" tabindex="-1"></a><span class="co">#&gt; [1] 48 14</span></span>
+<span id="cb7-14"><a href="#cb7-14" tabindex="-1"></a><span class="fu">head</span>(admin_monthly[, <span class="fu">c</span>(<span class="st">&quot;ACI_A&quot;</span>, <span class="st">&quot;ACI_B&quot;</span>)], <span class="dv">2</span>)</span>
+<span id="cb7-15"><a href="#cb7-15" tabindex="-1"></a><span class="co">#&gt;              ACI_A      ACI_B</span></span>
+<span id="cb7-16"><a href="#cb7-16" tabindex="-1"></a><span class="co">#&gt; 2011-01  0.4551911 -0.7979944</span></span>
+<span id="cb7-17"><a href="#cb7-17" tabindex="-1"></a><span class="co">#&gt; 2011-02 -0.3902822 -0.4622599</span></span></code></pre></div>
+<p>Same underlying components, three genuinely different shapes: a
+<code>data.frame</code> with one row per month nationally, a
+<code>[lon x lat x time]</code> array list on the raw grid, and a
+<code>data.frame</code> with one
+<code>&lt;component&gt;_&lt;unit&gt;</code> column pair per
+administrative unit.</p>
+</div>
+<div id="the-four-granularities-one-spatial-mode" class="section level2">
+<h2>The four granularities, one spatial mode</h2>
+<p>Fixing the national scalar mode (<code>area = TRUE</code>), here is
+the same computation reported at each temporal granularity:</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a>granularities <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&quot;month&quot;</span>, <span class="st">&quot;season&quot;</span>, <span class="st">&quot;semester&quot;</span>, <span class="st">&quot;year&quot;</span>)</span>
+<span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a>national_by_granularity <span class="ot">&lt;-</span> <span class="fu">lapply</span>(granularities, <span class="cf">function</span>(g) {</span>
+<span id="cb8-3"><a href="#cb8-3" tabindex="-1"></a>  <span class="fu">calculate_aci</span>(</span>
+<span id="cb8-4"><a href="#cb8-4" tabindex="-1"></a>    <span class="at">country_abbrev =</span> <span class="st">&quot;FRA&quot;</span>, <span class="at">study_period =</span> study_period, <span class="at">reference_period =</span> reference_period,</span>
+<span id="cb8-5"><a href="#cb8-5" tabindex="-1"></a>    <span class="at">temperature_data_path            =</span> t2m_file,</span>
+<span id="cb8-6"><a href="#cb8-6" tabindex="-1"></a>    <span class="at">precipitation_data_path        =</span> tp_file,</span>
+<span id="cb8-7"><a href="#cb8-7" tabindex="-1"></a>    <span class="at">wind_u10_data_path                    =</span> u10_file,</span>
+<span id="cb8-8"><a href="#cb8-8" tabindex="-1"></a>    <span class="at">wind_v10_data_path                    =</span> v10_file,</span>
+<span id="cb8-9"><a href="#cb8-9" tabindex="-1"></a>    <span class="at">mask_data_path                             =</span> mask_file,</span>
+<span id="cb8-10"><a href="#cb8-10" tabindex="-1"></a>    <span class="at">granularity =</span> g, <span class="at">area =</span> <span class="cn">TRUE</span>, <span class="at">admin_level =</span> <span class="cn">NULL</span>,</span>
+<span id="cb8-11"><a href="#cb8-11" tabindex="-1"></a>    <span class="at">computed_components =</span> <span class="cn">TRUE</span>, <span class="at">load_dir =</span> cache_dir</span>
+<span id="cb8-12"><a href="#cb8-12" tabindex="-1"></a>  )</span>
+<span id="cb8-13"><a href="#cb8-13" tabindex="-1"></a>})</span>
+<span id="cb8-14"><a href="#cb8-14" tabindex="-1"></a><span class="fu">names</span>(national_by_granularity) <span class="ot">&lt;-</span> granularities</span>
+<span id="cb8-15"><a href="#cb8-15" tabindex="-1"></a></span>
+<span id="cb8-16"><a href="#cb8-16" tabindex="-1"></a><span class="fu">sapply</span>(national_by_granularity, nrow)   <span class="co"># number of periods per granularity</span></span>
+<span id="cb8-17"><a href="#cb8-17" tabindex="-1"></a><span class="co">#&gt;    month   season semester     year </span></span>
+<span id="cb8-18"><a href="#cb8-18" tabindex="-1"></a><span class="co">#&gt;       48       17        8        4</span></span>
+<span id="cb8-19"><a href="#cb8-19" tabindex="-1"></a>national_by_granularity<span class="sc">$</span>semester</span>
+<span id="cb8-20"><a href="#cb8-20" tabindex="-1"></a><span class="co">#&gt;            drought      wind precipitation         t10        t90   sealevel        ACI</span></span>
+<span id="cb8-21"><a href="#cb8-21" tabindex="-1"></a><span class="co">#&gt; 2011-S1 -1.0726834 0.0000000    0.71191686  0.97759636 -1.0646249 -0.2435785 -0.4714814</span></span>
+<span id="cb8-22"><a href="#cb8-22" tabindex="-1"></a><span class="co">#&gt; 2011-S2 -0.2508652 0.0000000    0.12721814  0.98284998 -1.0032526 -0.1374611 -0.4110081</span></span>
+<span id="cb8-23"><a href="#cb8-23" tabindex="-1"></a><span class="co">#&gt; 2012-S1  0.6393322 0.0000000   -0.01142285 -0.10235882  0.2376682  0.2216346  0.1946660</span></span>
+<span id="cb8-24"><a href="#cb8-24" tabindex="-1"></a><span class="co">#&gt; 2012-S2 -0.8133445 0.0000000   -0.24741900 -0.01973684  0.1508050  0.3067992 -0.1593965</span></span>
+<span id="cb8-25"><a href="#cb8-25" tabindex="-1"></a><span class="co">#&gt; 2013-S1  0.4333512 0.0000000   -0.70049401 -0.87523753  0.8269567  0.0219439  0.2768154</span></span>
+<span id="cb8-26"><a href="#cb8-26" tabindex="-1"></a><span class="co">#&gt; 2013-S2  1.0642097 0.0000000    0.12020086 -0.96311313  0.8524477 -0.1693381  0.5704046</span></span>
+<span id="cb8-27"><a href="#cb8-27" tabindex="-1"></a><span class="co">#&gt; 2014-S1  2.8006632 0.2327829   -1.00193126 -1.81931870  1.8426589  0.4725578  1.1130777</span></span>
+<span id="cb8-28"><a href="#cb8-28" tabindex="-1"></a><span class="co">#&gt; 2014-S2  1.8220896 0.1969534    0.10514547 -2.23259299  2.5165369  1.3834795  1.3750027</span></span></code></pre></div>
+</div>
+<div id="the-full-matrix" class="section level2">
+<h2>The full matrix</h2>
+<p>Putting both axes together: 3 spatial modes x 4 granularities = 12
+calls, all reusing the same cache from Step 1:</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a>spatial_modes <span class="ot">&lt;-</span> <span class="fu">list</span>(</span>
+<span id="cb9-2"><a href="#cb9-2" tabindex="-1"></a>  <span class="at">national =</span> <span class="fu">list</span>(<span class="at">area =</span> <span class="cn">TRUE</span>,  <span class="at">admin_level =</span> <span class="cn">NULL</span>),</span>
+<span id="cb9-3"><a href="#cb9-3" tabindex="-1"></a>  <span class="at">grid     =</span> <span class="fu">list</span>(<span class="at">area =</span> <span class="cn">FALSE</span>, <span class="at">admin_level =</span> <span class="cn">NULL</span>),</span>
+<span id="cb9-4"><a href="#cb9-4" tabindex="-1"></a>  <span class="at">admin    =</span> <span class="fu">list</span>(<span class="at">area =</span> <span class="cn">TRUE</span>,  <span class="at">admin_level =</span> admin_level)  <span class="co"># area ignored when admin_level is set</span></span>
+<span id="cb9-5"><a href="#cb9-5" tabindex="-1"></a>)</span>
+<span id="cb9-6"><a href="#cb9-6" tabindex="-1"></a></span>
+<span id="cb9-7"><a href="#cb9-7" tabindex="-1"></a>matrix_results <span class="ot">&lt;-</span> <span class="fu">list</span>()</span>
+<span id="cb9-8"><a href="#cb9-8" tabindex="-1"></a><span class="cf">for</span> (mode_name <span class="cf">in</span> <span class="fu">names</span>(spatial_modes)) {</span>
+<span id="cb9-9"><a href="#cb9-9" tabindex="-1"></a>  mode <span class="ot">&lt;-</span> spatial_modes[[mode_name]]</span>
+<span id="cb9-10"><a href="#cb9-10" tabindex="-1"></a>  <span class="cf">for</span> (g <span class="cf">in</span> granularities) {</span>
+<span id="cb9-11"><a href="#cb9-11" tabindex="-1"></a>    key <span class="ot">&lt;-</span> <span class="fu">paste</span>(mode_name, g, <span class="at">sep =</span> <span class="st">&quot;_&quot;</span>)</span>
+<span id="cb9-12"><a href="#cb9-12" tabindex="-1"></a>    matrix_results[[key]] <span class="ot">&lt;-</span> <span class="fu">calculate_aci</span>(</span>
+<span id="cb9-13"><a href="#cb9-13" tabindex="-1"></a>      <span class="at">country_abbrev   =</span> <span class="st">&quot;FRA&quot;</span>, <span class="at">study_period =</span> study_period, <span class="at">reference_period =</span> reference_period,</span>
+<span id="cb9-14"><a href="#cb9-14" tabindex="-1"></a>      <span class="at">temperature_data_path                  =</span> t2m_file,</span>
+<span id="cb9-15"><a href="#cb9-15" tabindex="-1"></a>      <span class="at">precipitation_data_path            =</span> tp_file,</span>
+<span id="cb9-16"><a href="#cb9-16" tabindex="-1"></a>      <span class="at">wind_u10_data_path                              =</span> u10_file,</span>
+<span id="cb9-17"><a href="#cb9-17" tabindex="-1"></a>      <span class="at">wind_v10_data_path                              =</span> v10_file,</span>
+<span id="cb9-18"><a href="#cb9-18" tabindex="-1"></a>      <span class="at">mask_data_path                                           =</span> mask_file,</span>
+<span id="cb9-19"><a href="#cb9-19" tabindex="-1"></a>      <span class="at">granularity      =</span> g, <span class="at">area =</span> mode<span class="sc">$</span>area, <span class="at">admin_level =</span> mode<span class="sc">$</span>admin_level,</span>
+<span id="cb9-20"><a href="#cb9-20" tabindex="-1"></a>      <span class="at">max_dist_km      =</span> <span class="dv">800</span>,</span>
+<span id="cb9-21"><a href="#cb9-21" tabindex="-1"></a>      <span class="at">computed_components =</span> <span class="cn">TRUE</span>, <span class="at">load_dir =</span> cache_dir, <span class="at">save_dir =</span> cache_dir</span>
+<span id="cb9-22"><a href="#cb9-22" tabindex="-1"></a>    )</span>
+<span id="cb9-23"><a href="#cb9-23" tabindex="-1"></a>  }</span>
+<span id="cb9-24"><a href="#cb9-24" tabindex="-1"></a>}</span>
+<span id="cb9-25"><a href="#cb9-25" tabindex="-1"></a></span>
+<span id="cb9-26"><a href="#cb9-26" tabindex="-1"></a>summarise_result <span class="ot">&lt;-</span> <span class="cf">function</span>(res) {</span>
+<span id="cb9-27"><a href="#cb9-27" tabindex="-1"></a>  <span class="cf">if</span> (<span class="fu">is.data.frame</span>(res)) {</span>
+<span id="cb9-28"><a href="#cb9-28" tabindex="-1"></a>    <span class="fu">data.frame</span>(<span class="at">class =</span> <span class="st">&quot;data.frame&quot;</span>, <span class="at">n_periods =</span> <span class="fu">nrow</span>(res), <span class="at">n_columns =</span> <span class="fu">ncol</span>(res))</span>
+<span id="cb9-29"><a href="#cb9-29" tabindex="-1"></a>  } <span class="cf">else</span> {</span>
+<span id="cb9-30"><a href="#cb9-30" tabindex="-1"></a>    <span class="fu">data.frame</span>(<span class="at">class =</span> <span class="st">&quot;grid list&quot;</span>,</span>
+<span id="cb9-31"><a href="#cb9-31" tabindex="-1"></a>              <span class="at">n_periods =</span> <span class="fu">length</span>(res<span class="sc">$</span>time),</span>
+<span id="cb9-32"><a href="#cb9-32" tabindex="-1"></a>              <span class="at">n_columns =</span> <span class="fu">paste</span>(<span class="fu">dim</span>(res<span class="sc">$</span>ACI)[<span class="dv">1</span><span class="sc">:</span><span class="dv">2</span>], <span class="at">collapse =</span> <span class="st">&quot; x &quot;</span>))</span>
+<span id="cb9-33"><a href="#cb9-33" tabindex="-1"></a>  }</span>
+<span id="cb9-34"><a href="#cb9-34" tabindex="-1"></a>}</span>
+<span id="cb9-35"><a href="#cb9-35" tabindex="-1"></a></span>
+<span id="cb9-36"><a href="#cb9-36" tabindex="-1"></a>overview <span class="ot">&lt;-</span> <span class="fu">do.call</span>(rbind, <span class="fu">lapply</span>(<span class="fu">names</span>(matrix_results), <span class="cf">function</span>(key) {</span>
+<span id="cb9-37"><a href="#cb9-37" tabindex="-1"></a>  parts <span class="ot">&lt;-</span> <span class="fu">strsplit</span>(key, <span class="st">&quot;_&quot;</span>)[[<span class="dv">1</span>]]</span>
+<span id="cb9-38"><a href="#cb9-38" tabindex="-1"></a>  <span class="fu">cbind</span>(<span class="at">spatial =</span> parts[<span class="dv">1</span>], <span class="at">granularity =</span> parts[<span class="dv">2</span>], <span class="fu">summarise_result</span>(matrix_results[[key]]))</span>
+<span id="cb9-39"><a href="#cb9-39" tabindex="-1"></a>}))</span>
+<span id="cb9-40"><a href="#cb9-40" tabindex="-1"></a><span class="fu">rownames</span>(overview) <span class="ot">&lt;-</span> <span class="cn">NULL</span></span>
+<span id="cb9-41"><a href="#cb9-41" tabindex="-1"></a>overview</span>
+<span id="cb9-42"><a href="#cb9-42" tabindex="-1"></a><span class="co">#&gt;     spatial granularity      class n_periods n_columns</span></span>
+<span id="cb9-43"><a href="#cb9-43" tabindex="-1"></a><span class="co">#&gt; 1  national       month data.frame        48         7</span></span>
+<span id="cb9-44"><a href="#cb9-44" tabindex="-1"></a><span class="co">#&gt; 2  national      season data.frame        17         7</span></span>
+<span id="cb9-45"><a href="#cb9-45" tabindex="-1"></a><span class="co">#&gt; 3  national    semester data.frame         8         7</span></span>
+<span id="cb9-46"><a href="#cb9-46" tabindex="-1"></a><span class="co">#&gt; 4  national        year data.frame         4         7</span></span>
+<span id="cb9-47"><a href="#cb9-47" tabindex="-1"></a><span class="co">#&gt; 5      grid       month  grid list        48     2 x 2</span></span>
+<span id="cb9-48"><a href="#cb9-48" tabindex="-1"></a><span class="co">#&gt; 6      grid      season  grid list        17     2 x 2</span></span>
+<span id="cb9-49"><a href="#cb9-49" tabindex="-1"></a><span class="co">#&gt; 7      grid    semester  grid list         8     2 x 2</span></span>
+<span id="cb9-50"><a href="#cb9-50" tabindex="-1"></a><span class="co">#&gt; 8      grid        year  grid list         4     2 x 2</span></span>
+<span id="cb9-51"><a href="#cb9-51" tabindex="-1"></a><span class="co">#&gt; 9     admin       month data.frame        48        14</span></span>
+<span id="cb9-52"><a href="#cb9-52" tabindex="-1"></a><span class="co">#&gt; 10    admin      season data.frame        17        14</span></span>
+<span id="cb9-53"><a href="#cb9-53" tabindex="-1"></a><span class="co">#&gt; 11    admin    semester data.frame         8        14</span></span>
+<span id="cb9-54"><a href="#cb9-54" tabindex="-1"></a><span class="co">#&gt; 12    admin        year data.frame         4        14</span></span></code></pre></div>
+<p>Twelve calls, twelve distinct shapes, all derived from the same six
+cached components — only the last, cheap aggregation step differs
+between them.</p>
+</div>
+<div id="mapping-one-of-the-grid-cell-combinations" class="section level2">
+<h2>Mapping one of the grid-cell combinations</h2>
+<p>As a concrete illustration, <code>plot_aci_map()</code> (see
+<code>vignette(&quot;xaci-visualization&quot;)</code>) works directly on any
+grid-cell entry of the matrix above, whatever its granularity:</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" tabindex="-1"></a><span class="fu">plot_aci_map</span>(matrix_results<span class="sc">$</span>grid_season, <span class="at">variable =</span> <span class="st">&quot;ACI&quot;</span>, <span class="at">time_index =</span> <span class="st">&quot;mean&quot;</span>,</span>
+<span id="cb10-2"><a href="#cb10-2" tabindex="-1"></a>            <span class="at">borders =</span> <span class="cn">FALSE</span>, <span class="at">title =</span> <span class="st">&quot;Mean seasonal ACI (grid-cell mode)&quot;</span>)</span></code></pre></div>
+<div class="figure">
+<img role="img" aria-label="Map of the mean seasonal ACI over the synthetic 2x2 grid" src="data:image/png;base64,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1rh9+/YC5fb999/rNBvEPsXc0HvuuUePz5o1S84880xBr6BRo0ay1157CfZZueKKK2TbbbeVAw88UAMl2P1e+c2cOVPOOussOeqoo6RVq1ayZs0amThxok7badGihW7bPJ599ll5/vnn9SfC3qEnueWWW8qJJ54of//9t+5H3REOr0GDBtKuXTv58MMP7eme+ToJNm08+eSTsvvuu0vdunVl7733ls8//1yPYM7sqFGjpHv37pr/qaee6phiMU/2qquu0mtHuXauLNggzuyAAQOkcePGcsQRR8hPP/2keeywww4OVxTgVe6maslbb71VbgoT2m3fffeVP//80yYJ/JsKLHDELIAESCCaAMK/QWHh4Qtl8cADD8gff/whPXr00MDc+A159913VTEhYPdhhx0miNhz5513ypVXXqk9t/Xr1wuUB0LLQfnADDl48GA9F3ngwf3OO+9oMITXX39d9+OPV34Yi0N+UIS33XabRgI655xzZOjQoapw8NC2gmDjiBSEOlx44YWCUHgIyIAxPVt/BCGvU6eOfPvtt6o0oDwgCIHnla8m2PRn/vz5ctFFF8kTTzyh50ChY54sBOXfeuutyuKLL76QTz/9VF544QU9hiAP4ImAEOeff74cc8wxsnjxYq0r4sgiNB/SQ9Fhzu2gQYPk5ZdfVtPghg0bpKJytQDzZ//995c333xTfv/9d901depUndaEF4mqEiqwqiLNckiABMoRuPHGG2XKlCmy/fbb64MTPSv0wCDosUDwMMzJyZF7771XH9RQVG3btpVatWqp8kAa7Lv55ps1H/RC0KOAQKGgN9WmTRtVWOi9WKkov8LCQq3Pcccdp72M1q1ba08DygP5RQvqB5MnlAW20WPD+Njy5csFSvOmm27SMT70FLfbbjv55ptvEsoX5eD60WuDYoYixDVYhYHjqGOvXr2kZcuWquChGKGUoExuueUW7RVCAe60007KA+fg+qDksQ8vDOg14eVgn3320fLQS4tXLvJBj/DII490eqUvvfSSnHzyyThUZUIFVmWoWRAJkICbAAIRYKWJhx56SM17Tz/9tFx22WX69u9Oh22MmR1++OFq9kIvBuYqOz4GMyQUBwQPVRyDICQdHspWOnfubDcrzA9KxuZXUR42MygE9Gpg1kRd8BD/5Zdf5OeffxbEiYDig7kOn6+++kqVSyL5In8o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M+MZJEACJEACISBABRaCRmAVSIAESIAE/BPI939K+pxRVhqR4nXFqa9wXknq83TnmB9w/qasnOIyd4kp386N5PjMM+IrfV5esO9eOQUB/9coDDr/Al88E0m8rka+5OX6bddEcmYaEqgcgWCfApWrE88iARIgARIggbgEqMDiImICEiABEiCBMBKgAgtjq7BOJEACJEACcQlQgcVFxAQkQAIkQAJhJEAFFsZWYZ1IgARIgATiEqACi4uICUiABEiABMJIgAosjK3COpEACZAACcQlQAUWFxETkAAJkAAJhJFAKBXYwoULHVZLly6VJUuWOL/dG7/++qssX77cvYvbJEACJEACWUIg4HAA/im+9tprMn36dBkxYoRMmjRJFixYICtWrJBu3bpJly5dnAzHjRsnJSUl8sMPP8jFF18sO+64o3OMGyRAAiRAAplPIFQ9MPS83L2vFi1ayEUXXSQHH3ywKip3c3z//fdyzjnn6PE333zTfYjbJEACJEACWUAgNAoMvaknn3xS+vfv72Bv06aNfPnll3LvvfdK586dnf0bNmyQgoKNsd4aNWoky5Ytc45xgwRIgARIIDsIhEaBvfrqq7J69WoZP368/PzzzzJz5kxZt26d7L333jJ27Fh55JFHnBapUaOGmg+xY/369bLFFls4x7hBAiRAAiSQHQRCMwbWs2dP2W+//aS0tFRgHmzZsqWMHj1aevXqJehxNWvWTFsEiq1du3YCJTZ//nx5//33pUOHDtnRWrxKEiABEiABh0BoemD16tWTbbfdVrbbbjs56qijpG7dunLBBRfIN998I7/88otuo9bonUGuvvpq+fzzz2WHHXaQrl276j7+IQESIAESyB4CoemBWeQ5OTnSo0cP/Qml1rdvX3tIv4855hj9hoI76aSTyh3jDxIgARIggewhEJoeWPYg55WSAAmQAAmkggAVWCooMg8SIAESIIEqJ0AFVuXIWSAJkAAJkEAqCFCBpYIi8yABEiABEqhyAqFz4kglgbJImfzeNIA5YjVrpbKam+dVq+bm+1K8J6d2ijOMzq5oRfSeOL8jcY6XP5yz5JfyO1L8K6d4ZYpzjMquVsD3UM3U30PFReulrHS7qAvhTxKoPgI5ESPVV3ywJa9d9pesWhJAlI7cgDuuxhMzcMnLC7aIGhsjpQRWiJkHGKTkBM0nN+A2DugearRF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" alt="Map of the mean seasonal ACI over the synthetic 2x2 grid" />
+<p class="caption">
+plot of chunk unnamed-chunk-10
+</p>
+</div>
+</div>
+<div id="wrap-up" class="section level2">
+<h2>Wrap-up</h2>
+<ul>
+<li>Spatial and temporal aggregation are resolved independently in
+<code>calculate_aci()</code>: pick any of the 3 spatial modes and any of
+the 4 granularities, in any combination.</li>
+<li>The expensive part — computing the six raw components from
+ERA5/PSMSL data — only has to happen once, via <code>save = TRUE</code>;
+every combination shown here reused it through
+<code>computed_components = TRUE</code>.</li>
+<li>For real (non-synthetic) administrative aggregation, see
+<code>vignette(&quot;xaci-admin-levels&quot;)</code>; for mapping and plotting any
+of these outputs, see <code>vignette(&quot;xaci-visualization&quot;)</code>; for
+the six components individually, see
+<code>vignette(&quot;xaci-components&quot;)</code>.</li>
+</ul>
+</div>
+
+
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

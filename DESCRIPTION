@@ -1,0 +1,34 @@
+Package: xaci
+Title: Actuarial Climate Index
+Version: 1.1.0
+Authors@R: c(
+    person("Xavier", "Milhaud", , "xavier.milhaud.research@gmail.com", role = c("aut", "cre", "ctb")),
+    person("Dabakh", "Kane", , "kanedabakh55@gmail.com", role = "ctb"),
+    person("Esteban", "Mauboussin", , "esteban.mauboussin@cnp.fr", role = "ctb")
+  )
+Description: Computes the Actuarial Climate Index (ACI) and its components
+    (temperature, precipitation, drought, wind, sea level) from gridded climate
+    data ('NetCDF') and tide gauge records. Implements the methodology described
+    in Garrido, Milhaud & Olympio (2025) <https://hal.science/hal-04491982v2>
+    for a French/European actuarial climate index, building on the American 
+    Academy of Actuaries framework, to any country in the world.
+License: MIT + file LICENSE
+URL: https://github.com/XavierMilhaud/xaci
+BugReports: https://github.com/XavierMilhaud/xaci/issues
+Encoding: UTF-8
+Depends: R (>= 4.1.0)
+Imports: ncdf4 (>= 1.19), dplyr (>= 1.1), zoo (>= 1.8), readr (>= 2.1),
+        ggplot2 (>= 3.4.0), tidyr, sf, rnaturalearth, geodata, terra,
+        units, parallel
+Suggests: testthat (>= 3.0.0), patchwork (>= 1.1.0), ecmwfr (>= 2.0.0),
+        rnaturalearthdata, gganimate, gifski, knitr, rmarkdown,
+        spelling
+RoxygenNote: 7.3.3
+VignetteBuilder: knitr
+Language: en-US
+NeedsCompilation: no
+Packaged: 2026-11-18 13:11:57 UTC; XM
+Author: Xavier Milhaud [aut, cre, ctb],
+  Dabakh Kane [ctb],
+  Esteban Mauboussin [ctb]
+Maintainer: Xavier Milhaud <xavier.milhaud.research@gmail.com>

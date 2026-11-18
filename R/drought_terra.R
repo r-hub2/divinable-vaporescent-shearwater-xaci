@@ -1,0 +1,117 @@
+#' @title Terra-based Drought Component
+#' @description Memory-safe equivalents of \code{max_consecutive_dry_days()}
+#'   and \code{drought_component()}. Only the hourly-to-daily reduction runs
+#'   through terra; \code{drought_interpolate()} and the consecutive-dry-day
+#'   scan already operate on small, annual/daily-resolution data, so they are
+#'   reused as-is via the shared helper
+#'   \code{.max_consecutive_dry_days_from_daily()} (defined in
+#'   \code{drought.R}) -- no logic is duplicated.
+#' @name drought_terra
+NULL
+
+#' Calculate maximum consecutive dry days (terra version)
+#'
+#' @param r         A \code{terra::SpatRaster}, hourly (or sub-daily)
+#'   resolution precipitation, with \code{terra::time()} set. \strong{Non
+#'   masque} : le masquage se fait ici, une fois les donnees reduites a la
+#'   resolution journaliere (voir note ci-dessous).
+#' @param mask_path Path to the mask NetCDF file, or \code{NULL} (no masking).
+#' @param threshold Numeric threshold for the mask. Default \code{0.8}.
+#' @param target_chunk_gb Passed to \code{resample_daily_terra()} (see its
+#'   memory note) for memory-safe temporal chunking of large hourly series.
+#' @return Same structure as \code{max_consecutive_dry_days()}.
+#' @export
+max_consecutive_dry_days_terra <- function(r, mask_path = NULL, threshold = 0.8,
+                                           target_chunk_gb = 1) {
+  daily_r <- resample_daily_terra(r, fun = "sum", target_chunk_gb = target_chunk_gb)
+
+  # Masquage APRES reduction horaire -> journaliere (et non avant, sur les
+  # donnees brutes) : le masque est purement spatial, identique a chaque pas
+  # de temps, donc l'ordre ne change pas le resultat -- mais masquer ~12800
+  # couches journalieres (35 ans) plutot que ~300000 couches horaires reste
+  # sous la limite de 65535 couches de terra::mask() et evite le traitement
+  # par blocs (bien plus lent) de apply_mask_terra().
+  if (!is.null(mask_path)) {
+    daily_r <- apply_mask_terra(daily_r, mask_path, threshold)
+  }
+
+  daily <- .spatraster_to_list(daily_r)
+  .max_consecutive_dry_days_from_daily(daily)
+}
+
+#' Calculate the drought component of the ACI (terra version)
+#'
+#' Drop-in, memory-safe replacement for \code{drought_component()}.
+#'
+#' @inheritParams drought_component
+#' @param target_chunk_gb Passed to \code{resample_daily_terra()} (see its
+#'   memory note) for memory-safe temporal chunking of large hourly series.
+#'   Lower this if you still hit memory errors (e.g. \code{mem.maxVSize()}
+#'   on macOS); raise it only if you have RAM headroom to spare.
+#' @return Same as \code{drought_component()}.
+#' @export
+drought_component_terra <- function(precipitation_data_path,
+                                    country_abbrev,
+                                    reference_period,
+                                    study_period,
+                                    mask_path             = NULL,
+                                    area                  = FALSE,
+                                    admin_level           = NULL,
+                                    admin_mask            = NULL,
+                                    crs_metric            = 4326,
+                                    computed_components   = FALSE,
+                                    save                  = FALSE,
+                                    save_dir              = NULL,
+                                    load_dir              = NULL,
+                                    target_chunk_gb        = 1) {
+
+  save_dir <- .resolve_cache_dir(save_dir, file.path("xaci_results", country_abbrev))
+  load_dir <- .resolve_cache_dir(load_dir, file.path("xaci_results", country_abbrev))
+
+  study_tag <- paste(substr(study_period[1], 1, 4), substr(reference_period[2], 1, 4),
+                     substr(study_period[2], 1, 4), sep = "_")
+
+  if (computed_components) {
+    path <- file.path(load_dir, paste0("drought_", study_tag, ".rds"))
+    if (!file.exists(path)) {
+      stop("Cached file not found: ", path,
+           "\nRun drought_component_terra() with save = TRUE first.")
+    }
+    cdd_monthly <- readRDS(path)
+  } else {
+    r          <- load_netcdf_terra(precipitation_data_path, "tp")
+    cdd_annual <- max_consecutive_dry_days_terra(r, mask_path, target_chunk_gb = target_chunk_gb)
+    cdd_monthly <- drought_interpolate(cdd_annual)
+
+    if (save) {
+      dir.create(save_dir, recursive = TRUE, showWarnings = FALSE)
+      saveRDS(cdd_monthly,
+              file.path(save_dir, paste0("drought_", study_tag, ".rds")))
+    }
+  }
+
+  # Resolution du masque admin : une SEULE couche suffit pour lon/lat.
+  # load_netcdf_terra() est lazy (metadonnees seulement) et NON masque : le
+  # masquage ne change ni les dimensions ni les coordonnees, donc inutile ici
+  # -- eviter de recharger + remasquer l'integralite du fichier horaire brut
+  # juste pour ca.
+  if (is.null(admin_mask) && !is.null(admin_level)) {
+    tmp      <- load_netcdf_terra(precipitation_data_path, "tp")
+    tmp_list <- .spatraster_to_list(tmp[[1]])
+    admin_mask <- build_admin_mask(tmp_list$lon, tmp_list$lat, country_abbrev,
+                                   admin_level, crs_metric)
+    rm(tmp, tmp_list)
+  }
+
+  if (is.null(admin_mask)) {
+    return(standardize_metric(cdd_monthly, reference_period, area))
+  }
+  standardized <- standardize_metric(cdd_monthly, reference_period, area = FALSE)
+  out <- reduce_dataarray_to_dataframe(standardized, column_name = "drought",
+                                       admin_mask = admin_mask)
+  effective_admin_level <- if (!is.null(admin_level)) admin_level else admin_mask$admin_level
+  .attach_spatial_attrs(out,
+                        country_abbrev = country_abbrev,
+                        admin_level    = effective_admin_level,
+                        crs_metric     = crs_metric)
+}

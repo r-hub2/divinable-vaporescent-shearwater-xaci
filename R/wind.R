@@ -1,0 +1,274 @@
+#' @title Wind Component of the ACI
+#' @description Computes the wind component of the Actuarial Climate Index.
+#' @name wind
+NULL
+
+#' Calculate daily wind power from u10 and v10 components
+#'
+#' Wind speed = sqrt(u10^2 + v10^2), wind power = 0.5 * rho * ws^3.
+#'
+#' \strong{Bug fix (see NEWS):} earlier versions averaged \code{u10} and
+#' \code{v10} to daily means SEPARATELY first, then took the magnitude of
+#' that daily-mean vector (\code{sqrt(mean(u)^2 + mean(v)^2)}) as the "daily
+#' mean wind speed". This "vector averaging" systematically UNDER-estimates
+#' the true daily mean wind speed whenever wind direction varies over the
+#' day, because opposing (or merely differing) hourly components partially
+#' cancel out before the magnitude is taken -- e.g. a wind blowing at a
+#' constant 8 m/s whose direction oscillates by only +/-60 degrees over the
+#' day averages out to a vector magnitude of ~6 m/s, a ~58\% error on the
+#' resulting wind power (0.5*rho*w^3), verified numerically. The standard
+#' meteorological convention for a "daily mean wind speed" is instead to
+#' average the INSTANTANEOUS scalar speed \code{sqrt(u^2+v^2)} computed at
+#' each timestep, which is always positive and does not suffer from this
+#' cancellation; that is what this function now does.
+#'
+#' @param u10_dataset List returned by \code{load_component()} for \code{u10}.
+#' @param v10_dataset List returned by \code{load_component()} for \code{v10}.
+#' @param reference_period Optional character vector \code{c("start","end")}.
+#'   If provided, only the reference sub-period is returned.
+#' @return A list with \code{data} [lon x lat x days] (wind power in W/m²)
+#'   and daily \code{time}.
+#' @export
+wind_power <- function(u10_dataset, v10_dataset, reference_period = NULL) {
+  rho <- 1.23  # air density kg/m³
+
+  u <- u10_dataset$data
+  v <- v10_dataset$data
+
+  # Vitesse instantanee (scalaire, toujours positive) calculee AVANT la
+  # moyenne journaliere -- voir la note de bug ci-dessus.
+  ws_instant <- sqrt(u^2 + v^2)
+
+  ws_list <- resample_daily(list(data = ws_instant, time = u10_dataset$time,
+                                 lon = u10_dataset$lon, lat = u10_dataset$lat),
+                            FUN = mean)
+
+  wp <- 0.5 * rho * ws_list$data^3
+
+  result <- list(data = wp, time = ws_list$time,
+                 lon = u10_dataset$lon, lat = u10_dataset$lat)
+
+  if (!is.null(reference_period)) {
+    ref_start <- as.POSIXct(reference_period[1], tz = "UTC")
+    ref_end   <- as.POSIXct(reference_period[2], tz = "UTC")
+    keep      <- result$time >= ref_start & result$time <= ref_end
+    result$data <- result$data[, , keep, drop = FALSE]
+    result$time <- result$time[keep]
+  }
+  result
+}
+
+#' Calculate wind power thresholds (90th percentile per day-of-year)
+#'
+#' @param u10_dataset      List for \code{u10} variable.
+#' @param v10_dataset      List for \code{v10} variable.
+#' @param reference_period Character vector \code{c("start", "end")}.
+#' @return A list with \code{data} [lon x lat x all_days] giving the threshold
+#'   for each day of the full series, and \code{time}.
+#' @export
+wind_thresholds <- function(u10_dataset, v10_dataset, reference_period) {
+  wp_full <- wind_power(u10_dataset, v10_dataset)
+  .wind_thresholds_from_wp(wp_full, reference_period,
+                           u10_dataset$lon, u10_dataset$lat)
+}
+
+#' Compute per-day-of-year wind power thresholds from an already-daily series
+#'
+#' Shared helper behind \code{wind_thresholds()} (base-R) and the terra
+#' pipeline (\code{wind_power_terra()} + this same function). Operates
+#' exclusively on DAILY-resolution wind power (already small, even for
+#' 40+ years of data), never on raw hourly arrays.
+#'
+#' @param wp A list \code{list(data, time)}, daily resolution wind power
+#'   (e.g. from \code{wind_power()}, called without \code{reference_period}).
+#' @param reference_period Character vector \code{c("start", "end")}.
+#' @param lon,lat Coordinate vectors, carried through to the output.
+#' @return A list with \code{data} [lon x lat x all_days] and \code{time}.
+#' @keywords internal
+.wind_thresholds_from_wp <- function(wp, reference_period, lon, lat) {
+  ref_start <- as.POSIXct(reference_period[1], tz = "UTC")
+  ref_end   <- as.POSIXct(reference_period[2], tz = "UTC")
+
+  time     <- wp$time
+  data     <- wp$data
+  ref_mask <- time >= ref_start & time <= ref_end
+  dims     <- dim(data)
+  nl <- dims[1]; nw <- dims[2]; nt <- dims[3]
+
+  day_all <- as.integer(format(as.Date(time), "%j"))
+  day_ref <- day_all[ref_mask]
+
+  # Per-day mean and sd over reference period
+  thresh <- array(NA_real_, c(nl, nw, nt))
+  for (i in seq_len(nl)) {
+    for (j in seq_len(nw)) {
+      series_ref <- data[i, j, ref_mask]
+      for (t in seq_len(nt)) {
+        d   <- day_all[t]
+        idx <- which(day_ref == d)
+        if (length(idx) == 0) next
+        m <- mean(series_ref[idx], na.rm = TRUE)
+        s <- sd(series_ref[idx],   na.rm = TRUE)
+        thresh[i, j, t] <- m + 1.28 * s
+      }
+    }
+  }
+  list(data = thresh, time = time, lon = lon, lat = lat)
+}
+
+#' Calculate days with wind power above the 90th-percentile threshold
+#'
+#' @param u10_dataset      List for \code{u10}.
+#' @param v10_dataset      List for \code{v10}.
+#' @param reference_period Character vector \code{c("start", "end")}.
+#' @return A list with binary \code{data} [lon x lat x days] and \code{time}.
+#' @export
+days_above_wind_thresholds <- function(u10_dataset, v10_dataset,
+                                       reference_period) {
+  wp  <- wind_power(u10_dataset, v10_dataset)
+  thr <- .wind_thresholds_from_wp(wp, reference_period,
+                                  u10_dataset$lon, u10_dataset$lat)
+  .days_above_from_wp(wp, thr, u10_dataset$lon, u10_dataset$lat)
+}
+
+#' Binary threshold-crossing from an already-daily wind power series
+#'
+#' Shared helper, see \code{.wind_thresholds_from_wp()}.
+#' @keywords internal
+.days_above_from_wp <- function(wp, thr, lon, lat) {
+  above <- ifelse(wp$data > thr$data, 1L, 0L)
+  list(data = above, time = wp$time, lon = lon, lat = lat)
+}
+
+#' Calculate monthly wind exceedance frequency
+#'
+#' @param u10_dataset      List for \code{u10}.
+#' @param v10_dataset      List for \code{v10}.
+#' @param reference_period Character vector \code{c("start", "end")}.
+#' @return A list with \code{data} [lon x lat x periods] and \code{time}.
+#' @export
+calculate_period_wind_exceedance_frequency <- function(u10_dataset, v10_dataset,
+                                                       reference_period) {
+  wp    <- wind_power(u10_dataset, v10_dataset)
+  thr   <- .wind_thresholds_from_wp(wp, reference_period,
+                                    u10_dataset$lon, u10_dataset$lat)
+  above <- .days_above_from_wp(wp, thr, u10_dataset$lon, u10_dataset$lat)
+  .monthly_frequency_from_binary(above, u10_dataset$lon, u10_dataset$lat)
+}
+
+#' Monthly frequency of a binary daily series
+#'
+#' Shared helper, see \code{.wind_thresholds_from_wp()}.
+#' @keywords internal
+.monthly_frequency_from_binary <- function(bin, lon, lat) {
+  data <- bin$data
+  time <- bin$time
+
+  key     <- format(time, "%Y-%m")
+  periods <- unique(key)
+  dims    <- dim(data)
+  nl <- dims[1]; nw <- dims[2]
+
+  out <- array(NA_real_, c(nl, nw, length(periods)))
+  for (k in seq_along(periods)) {
+    idx        <- which(key == periods[k])
+    s          <- apply(data[, , idx, drop = FALSE], c(1, 2), sum,    na.rm = TRUE)
+    n          <- apply(data[, , idx, drop = FALSE], c(1, 2), length)
+    out[, , k] <- s / n
+    # Meme piege que dans resample_daily()/resample_monthly() (component.R) :
+    # sum(rep(NA, n), na.rm = TRUE) vaut 0 et length() compte tous les
+    # emplacements, NA inclus -- une cellule entierement masquee donnerait
+    # donc 0/n = 0 (frequence "valide") au lieu de NA. On force explicitement
+    # NA quand tout etait NA en entree pour cette periode.
+    all_na <- apply(is.na(data[, , idx, drop = FALSE]), c(1, 2), all)
+    out[, , k][all_na] <- NA_real_
+  }
+
+  period_dates <- as.POSIXct(paste0(periods, "-01"),
+                             format = "%Y-%m-%d", tz = "UTC")
+
+  list(data = out, time = period_dates, lon = lon, lat = lat)
+}
+
+#' Calculate the wind component of the ACI
+#'
+#' @param wind_u10_data_path Path to the u10 NetCDF file.
+#' @param wind_v10_data_path Path to the v10 NetCDF file.
+#' @param country_abbrev     Three-letter ISO country code.
+#' @param reference_period   Character vector \code{c("start", "end")}.
+#'   Climatological baseline used for standardisation.
+#' @param study_period       Character vector \code{c("start", "end")}. Full
+#'   period covered by the study; used to name the cached grid-cell-level
+#'   \code{.rds} file (e.g. \code{"wind_1980_2020.rds"}).
+#' @param mask_path          Path to the country mask NetCDF file, or
+#'   \code{NULL}.
+#' @param area               Logical. Default \code{FALSE}.
+#' @param admin_level        Integer or \code{NULL}.
+#' @param admin_mask         Output of \code{build_admin_mask()}, or
+#'   \code{NULL}.
+#' @param crs_metric         EPSG code. Default \code{4326}.
+#' @param computed_components Logical. Default \code{FALSE}.
+#' @param save      Logical. Default \code{FALSE}.
+#' @param save_dir  Character. Default \code{NULL}, which resolves to a sub-directory of \code{tempdir()}.
+#' @param load_dir  Character. Default \code{NULL}, which resolves to a sub-directory of \code{tempdir()}.
+#' @return Named numeric vector, standardised list, or \code{data.frame}
+#'   per admin unit.
+#' @export
+wind_component <- function(wind_u10_data_path,
+                           wind_v10_data_path,
+                           country_abbrev,
+                           reference_period,
+                           study_period,
+                           mask_path             = NULL,
+                           area                  = FALSE,
+                           admin_level           = NULL,
+                           admin_mask            = NULL,
+                           crs_metric            = 4326,
+                           computed_components   = FALSE,
+                           save                  = FALSE,
+                           save_dir              = NULL,
+                           load_dir              = NULL) {
+
+  save_dir <- .resolve_cache_dir(save_dir, file.path("xaci_results", country_abbrev))
+  load_dir <- .resolve_cache_dir(load_dir, file.path("xaci_results", country_abbrev))
+
+  study_tag <- paste(substr(study_period[1], 1, 4), substr(reference_period[2], 1, 4),
+                     substr(study_period[2], 1, 4), sep = "_")
+
+  if (computed_components) {
+    path <- file.path(load_dir, paste0("wind_", study_tag, ".rds"))
+    if (!file.exists(path))
+      stop("Cached file not found: ", path,
+           "\nRun wind_component() with save = TRUE first.")
+    freq <- readRDS(path)
+  } else {
+    u10  <- load_component(wind_u10_data_path, "u10", mask_path)
+    v10  <- load_component(wind_v10_data_path, "v10", mask_path)
+    freq <- calculate_period_wind_exceedance_frequency(u10, v10,
+                                                       reference_period)
+    if (save) {
+      dir.create(save_dir, recursive = TRUE, showWarnings = FALSE)
+      saveRDS(freq, file.path(save_dir, paste0("wind_", study_tag, ".rds")))
+    }
+  }
+
+  # Résolution du masque admin
+  if (is.null(admin_mask) && !is.null(admin_level)) {
+    tmp        <- load_component(wind_u10_data_path, "u10", mask_path)
+    admin_mask <- build_admin_mask(tmp$lon, tmp$lat, country_abbrev,
+                                   admin_level, crs_metric)
+    rm(tmp)
+  }
+
+  if (is.null(admin_mask)) {
+    return(standardize_metric(freq, reference_period, area))
+  }
+  standardized <- standardize_metric(freq, reference_period, area = FALSE)
+  out <- reduce_dataarray_to_dataframe(standardized, column_name = "wind",
+                                       admin_mask = admin_mask)
+  effective_admin_level <- if (!is.null(admin_level)) admin_level else admin_mask$admin_level
+  .attach_spatial_attrs(out,
+                        country_abbrev = country_abbrev,
+                        admin_level    = effective_admin_level,
+                        crs_metric     = crs_metric)
+}

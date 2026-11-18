@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+
+
+<title>Memory-Safe Processing with the terra Engine</title>
+
+<script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
+// be compatible with the behavior of Pandoc < 2.8).
+document.addEventListener('DOMContentLoaded', function(e) {
+  var hs = document.querySelectorAll("div.section[class*='level'] > :first-child");
+  var i, h, a;
+  for (i = 0; i < hs.length; i++) {
+    h = hs[i];
+    if (!/^h[1-6]$/i.test(h.tagName)) continue;  // it should be a header h1-h6
+    a = h.attributes;
+    while (a.length > 0) h.removeAttribute(a[0].name);
+  }
+});
+</script>
+
+<style type="text/css">
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+span.underline{text-decoration: underline;}
+div.column{display: inline-block; vertical-align: top; width: 50%;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+</style>
+
+
+
+<style type="text/css">
+code {
+white-space: pre;
+}
+.sourceCode {
+overflow: visible;
+}
+</style>
+<style type="text/css" data-origin="pandoc">
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+{ counter-reset: source-line 0; }
+pre.numberSource code > span
+{ position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+{ content: counter(source-line);
+position: relative; left: -1em; text-align: right; vertical-align: baseline;
+border: none; display: inline-block;
+-webkit-touch-callout: none; -webkit-user-select: none;
+-khtml-user-select: none; -moz-user-select: none;
+-ms-user-select: none; user-select: none;
+padding: 0 4px; width: 4em;
+color: #aaaaaa;
+}
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa; padding-left: 4px; }
+div.sourceCode
+{ }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } 
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.at { color: #7d9029; } 
+code span.bn { color: #40a070; } 
+code span.bu { color: #008000; } 
+code span.cf { color: #007020; font-weight: bold; } 
+code span.ch { color: #4070a0; } 
+code span.cn { color: #880000; } 
+code span.co { color: #60a0b0; font-style: italic; } 
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.do { color: #ba2121; font-style: italic; } 
+code span.dt { color: #902000; } 
+code span.dv { color: #40a070; } 
+code span.er { color: #ff0000; font-weight: bold; } 
+code span.ex { } 
+code span.fl { color: #40a070; } 
+code span.fu { color: #06287e; } 
+code span.im { color: #008000; font-weight: bold; } 
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.kw { color: #007020; font-weight: bold; } 
+code span.op { color: #666666; } 
+code span.ot { color: #007020; } 
+code span.pp { color: #bc7a00; } 
+code span.sc { color: #4070a0; } 
+code span.ss { color: #bb6688; } 
+code span.st { color: #4070a0; } 
+code span.va { color: #19177c; } 
+code span.vs { color: #4070a0; } 
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } 
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    var j = 0;
+    while (j < rules.length) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") {
+        j++;
+        continue;
+      }
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' && rule.style.backgroundColor === '') {
+        j++;
+        continue;
+      }
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
+
+
+
+
+<style type="text/css">body {
+background-color: #fff;
+margin: 1em auto;
+max-width: 700px;
+overflow: visible;
+padding-left: 2em;
+padding-right: 2em;
+font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+font-size: 14px;
+line-height: 1.35;
+}
+#TOC {
+clear: both;
+margin: 0 0 10px 10px;
+padding: 4px;
+width: 400px;
+border: 1px solid #CCCCCC;
+border-radius: 5px;
+background-color: #f6f6f6;
+font-size: 13px;
+line-height: 1.3;
+}
+#TOC .toctitle {
+font-weight: bold;
+font-size: 15px;
+margin-left: 5px;
+}
+#TOC ul {
+padding-left: 40px;
+margin-left: -1.5em;
+margin-top: 5px;
+margin-bottom: 5px;
+}
+#TOC ul ul {
+margin-left: -2em;
+}
+#TOC li {
+line-height: 16px;
+}
+table {
+margin: 1em auto;
+border-width: 1px;
+border-color: #DDDDDD;
+border-style: outset;
+border-collapse: collapse;
+}
+table th {
+border-width: 2px;
+padding: 5px;
+border-style: inset;
+}
+table td {
+border-width: 1px;
+border-style: inset;
+line-height: 18px;
+padding: 5px 5px;
+}
+table, table th, table td {
+border-left-style: none;
+border-right-style: none;
+}
+table thead, table tr.even {
+background-color: #f7f7f7;
+}
+p {
+margin: 0.5em 0;
+}
+blockquote {
+background-color: #f6f6f6;
+padding: 0.25em 0.75em;
+}
+hr {
+border-style: solid;
+border: none;
+border-top: 1px solid #777;
+margin: 28px 0;
+}
+dl {
+margin-left: 0;
+}
+dl dd {
+margin-bottom: 13px;
+margin-left: 13px;
+}
+dl dt {
+font-weight: bold;
+}
+ul {
+margin-top: 0;
+}
+ul li {
+list-style: circle outside;
+}
+ul ul {
+margin-bottom: 0;
+}
+pre, code {
+background-color: #f7f7f7;
+border-radius: 3px;
+color: #333;
+white-space: pre-wrap; 
+}
+pre {
+border-radius: 3px;
+margin: 5px 0px 10px 0px;
+padding: 10px;
+}
+pre:not([class]) {
+background-color: #f7f7f7;
+}
+code {
+font-family: Consolas, Monaco, 'Courier New', monospace;
+font-size: 85%;
+}
+p > code, li > code {
+padding: 2px 0px;
+}
+div.figure {
+text-align: center;
+}
+img {
+background-color: #FFFFFF;
+padding: 2px;
+border: 1px solid #DDDDDD;
+border-radius: 3px;
+border: 1px solid #CCCCCC;
+margin: 0 5px;
+}
+h1 {
+margin-top: 0;
+font-size: 35px;
+line-height: 40px;
+}
+h2 {
+border-bottom: 4px solid #f7f7f7;
+padding-top: 10px;
+padding-bottom: 2px;
+font-size: 145%;
+}
+h3 {
+border-bottom: 2px solid #f7f7f7;
+padding-top: 10px;
+font-size: 120%;
+}
+h4 {
+border-bottom: 1px solid #f7f7f7;
+margin-left: 8px;
+font-size: 105%;
+}
+h5, h6 {
+border-bottom: 1px solid #ccc;
+font-size: 105%;
+}
+a {
+color: #0033dd;
+text-decoration: none;
+}
+a:hover {
+color: #6666ff; }
+a:visited {
+color: #800080; }
+a:visited:hover {
+color: #BB00BB; }
+a[href^="http:"] {
+text-decoration: underline; }
+a[href^="https:"] {
+text-decoration: underline; }
+
+code > span.kw { color: #555; font-weight: bold; } 
+code > span.dt { color: #902000; } 
+code > span.dv { color: #40a070; } 
+code > span.bn { color: #d14; } 
+code > span.fl { color: #d14; } 
+code > span.ch { color: #d14; } 
+code > span.st { color: #d14; } 
+code > span.co { color: #888888; font-style: italic; } 
+code > span.ot { color: #007020; } 
+code > span.al { color: #ff0000; font-weight: bold; } 
+code > span.fu { color: #900; font-weight: bold; } 
+code > span.er { color: #a61717; background-color: #e3d2d2; } 
+</style>
+
+
+
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">Memory-Safe Processing with the terra
+Engine</h1>
+
+
+
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="fu">library</span>(xaci)</span></code></pre></div>
+<div id="why-a-second-engine" class="section level2">
+<h2>Why a second engine?</h2>
+<p>The default pipeline (<code>temperature_component()</code>,
+<code>wind_component()</code>, <code>drought_component()</code>,
+<code>precipitation_component()</code>, all built on
+<code>load_component()</code> / <code>ncdf4</code>) reads the
+<strong>entire</strong> hourly NetCDF cube into memory before doing any
+computation. For a single ERA5 variable over a whole country, multiple
+decades, at hourly resolution, this can require tens of gigabytes of RAM
+before any actual work happens.</p>
+<p>xaci provides a memory-safe alternative built on the <a href="https://rspatial.github.io/terra/"><code>terra</code></a> package:
+it reads NetCDF files lazily (metadata only, no pixel values loaded up
+front), reduces hourly data to daily resolution block by block, and
+writes intermediate results to disk rather than accumulating them in
+RAM. Once reduced to daily resolution — a few hundred KB to a few MB
+even for 40+ years of data — the rest of the pipeline (percentile
+thresholds, monthly aggregation, standardisation) is identical to the
+default engine: same functions, same results. This is verified in the
+package’s own test suite by a parity test comparing both engines on
+synthetic and NetCDF-backed data.</p>
+<p><strong>Rule of thumb</strong>: use <code>engine = &quot;base&quot;</code> (the
+default) for country-level, multi-year studies; switch to
+<code>engine = &quot;terra&quot;</code> when the default pipeline runs out of
+memory, typically a whole-country, hourly, multi-decade
+<code>study_period</code>.</p>
+</div>
+<div id="same-inputs-same-outputs" class="section level2">
+<h2>Same inputs, same outputs</h2>
+<p>Each memory-safe component has a <code>_terra</code>-suffixed,
+drop-in equivalent, used exactly like its base-R counterpart (same
+arguments — plus <code>cores</code>, used only by the temperature
+percentile step, see below):</p>
+<table>
+<thead>
+<tr class="header">
+<th>Base-R function</th>
+<th><code>terra</code> equivalent</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>temperature_component()</code></td>
+<td><code>temperature_component_terra()</code></td>
+</tr>
+<tr class="even">
+<td><code>wind_component()</code></td>
+<td><code>wind_component_terra()</code></td>
+</tr>
+<tr class="odd">
+<td><code>drought_component()</code></td>
+<td><code>drought_component_terra()</code></td>
+</tr>
+<tr class="even">
+<td><code>precipitation_component()</code></td>
+<td><code>precipitation_component_terra()</code></td>
+</tr>
+</tbody>
+</table>
+<p><code>sealevel_component()</code> has no <code>_terra</code>
+equivalent: its input is tide-gauge CSV data, not gridded NetCDF, so the
+memory bottleneck this engine addresses does not apply to it.</p>
+<p>We build the same kind of tiny synthetic NetCDF used elsewhere in
+this package’s vignettes, and compute
+<code>temperature_component()</code> both ways to show they agree. As in
+the other vignettes, <code>reference_period</code> spans 3 years and
+<code>study_period</code> extends a year beyond it, with a mild warming
+trend added to the synthetic data — see
+<code>vignette(&quot;xaci-components&quot;)</code> for why a short reference
+period is best avoided: with 1 year, an undefined per-month standard
+deviation; with exactly 2, standardising always collapses to exactly
+<code>+1/sqrt(2)</code> or <code>-1/sqrt(2)</code> (a mathematical
+identity, not a data-dependent result) — informative for neither engine,
+and not a meaningful check of whether they actually agree on the
+underlying arithmetic. 3 reference years leave 1 “degree of freedom” per
+month (see <code>vignette(&quot;xaci-components&quot;)</code> for the exact
+argument) – enough to break that shared artifact and keep this vignette
+quick to build, though not as fully realistic as a longer reference
+sample would be.</p>
+<p>This vignette’s grid (2x2 cells, 4 years of hourly data) is
+deliberately tiny so it builds quickly — it demonstrates that the
+<code>terra</code> engine is a drop-in replacement with matching output,
+not that it holds up at country scale over decades. That larger-scale,
+non-toy validation is what the package’s own test suite
+(<code>tests/testthat/test-*-terra-*.R</code>) is for, comparing both
+engines against synthetic <em>and</em> NetCDF-backed data closer to real
+ERA5 extracts.</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a>build_synthetic_t2m <span class="ot">&lt;-</span> <span class="cf">function</span>(path, lon, lat, time_vec, origin) {</span>
+<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a>  time_hours <span class="ot">&lt;-</span> <span class="fu">as.numeric</span>(<span class="fu">difftime</span>(time_vec, origin, <span class="at">units =</span> <span class="st">&quot;hours&quot;</span>))</span>
+<span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a>  nlo <span class="ot">&lt;-</span> <span class="fu">length</span>(lon); nla <span class="ot">&lt;-</span> <span class="fu">length</span>(lat); nt <span class="ot">&lt;-</span> <span class="fu">length</span>(time_vec)</span>
+<span id="cb2-4"><a href="#cb2-4" tabindex="-1"></a></span>
+<span id="cb2-5"><a href="#cb2-5" tabindex="-1"></a>  trend    <span class="ot">&lt;-</span> <span class="fu">seq_len</span>(nt) <span class="sc">/</span> nt   <span class="co"># mild warming trend, see note above</span></span>
+<span id="cb2-6"><a href="#cb2-6" tabindex="-1"></a>  seasonal <span class="ot">&lt;-</span> <span class="dv">288</span> <span class="sc">+</span> <span class="dv">10</span> <span class="sc">*</span> <span class="fu">sin</span>(<span class="dv">2</span> <span class="sc">*</span> pi <span class="sc">*</span> <span class="fu">seq_len</span>(nt) <span class="sc">/</span> (<span class="dv">24</span> <span class="sc">*</span> <span class="dv">365</span>)) <span class="sc">+</span> <span class="fl">0.6</span> <span class="sc">*</span> trend</span>
+<span id="cb2-7"><a href="#cb2-7" tabindex="-1"></a>  vals <span class="ot">&lt;-</span> <span class="fu">array</span>(<span class="cn">NA_real_</span>, <span class="at">dim =</span> <span class="fu">c</span>(nlo, nla, nt))</span>
+<span id="cb2-8"><a href="#cb2-8" tabindex="-1"></a>  <span class="cf">for</span> (i <span class="cf">in</span> <span class="fu">seq_len</span>(nlo)) {</span>
+<span id="cb2-9"><a href="#cb2-9" tabindex="-1"></a>    <span class="cf">for</span> (j <span class="cf">in</span> <span class="fu">seq_len</span>(nla)) {</span>
+<span id="cb2-10"><a href="#cb2-10" tabindex="-1"></a>      vals[i, j, ] <span class="ot">&lt;-</span> seasonal <span class="sc">+</span> (i <span class="sc">+</span> j) <span class="sc">+</span> <span class="fu">rnorm</span>(nt, <span class="at">sd =</span> <span class="fl">1.5</span>)</span>
+<span id="cb2-11"><a href="#cb2-11" tabindex="-1"></a>    }</span>
+<span id="cb2-12"><a href="#cb2-12" tabindex="-1"></a>  }</span>
+<span id="cb2-13"><a href="#cb2-13" tabindex="-1"></a></span>
+<span id="cb2-14"><a href="#cb2-14" tabindex="-1"></a>  dim_lon  <span class="ot">&lt;-</span> ncdf4<span class="sc">::</span><span class="fu">ncdim_def</span>(<span class="st">&quot;longitude&quot;</span>, <span class="st">&quot;degrees_east&quot;</span>, lon)</span>
+<span id="cb2-15"><a href="#cb2-15" tabindex="-1"></a>  dim_lat  <span class="ot">&lt;-</span> ncdf4<span class="sc">::</span><span class="fu">ncdim_def</span>(<span class="st">&quot;latitude&quot;</span>, <span class="st">&quot;degrees_north&quot;</span>, lat)</span>
+<span id="cb2-16"><a href="#cb2-16" tabindex="-1"></a>  dim_time <span class="ot">&lt;-</span> ncdf4<span class="sc">::</span><span class="fu">ncdim_def</span>(</span>
+<span id="cb2-17"><a href="#cb2-17" tabindex="-1"></a>    <span class="st">&quot;time&quot;</span>, <span class="fu">paste0</span>(<span class="st">&quot;hours since &quot;</span>, <span class="fu">format</span>(origin, <span class="st">&quot;%Y-%m-%d %H:%M:%S&quot;</span>)),</span>
+<span id="cb2-18"><a href="#cb2-18" tabindex="-1"></a>    time_hours, <span class="at">unlim =</span> <span class="cn">TRUE</span></span>
+<span id="cb2-19"><a href="#cb2-19" tabindex="-1"></a>  )</span>
+<span id="cb2-20"><a href="#cb2-20" tabindex="-1"></a>  var_t2m <span class="ot">&lt;-</span> ncdf4<span class="sc">::</span><span class="fu">ncvar_def</span>(<span class="st">&quot;t2m&quot;</span>, <span class="st">&quot;K&quot;</span>, <span class="fu">list</span>(dim_lon, dim_lat, dim_time),</span>
+<span id="cb2-21"><a href="#cb2-21" tabindex="-1"></a>                              <span class="at">missval =</span> <span class="cn">NA</span>, <span class="at">prec =</span> <span class="st">&quot;double&quot;</span>)</span>
+<span id="cb2-22"><a href="#cb2-22" tabindex="-1"></a></span>
+<span id="cb2-23"><a href="#cb2-23" tabindex="-1"></a>  nc <span class="ot">&lt;-</span> ncdf4<span class="sc">::</span><span class="fu">nc_create</span>(path, <span class="fu">list</span>(var_t2m))</span>
+<span id="cb2-24"><a href="#cb2-24" tabindex="-1"></a>  ncdf4<span class="sc">::</span><span class="fu">ncvar_put</span>(nc, var_t2m, vals)</span>
+<span id="cb2-25"><a href="#cb2-25" tabindex="-1"></a>  ncdf4<span class="sc">::</span><span class="fu">nc_close</span>(nc)</span>
+<span id="cb2-26"><a href="#cb2-26" tabindex="-1"></a>  <span class="fu">invisible</span>(path)</span>
+<span id="cb2-27"><a href="#cb2-27" tabindex="-1"></a>}</span>
+<span id="cb2-28"><a href="#cb2-28" tabindex="-1"></a></span>
+<span id="cb2-29"><a href="#cb2-29" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">99</span>)</span>
+<span id="cb2-30"><a href="#cb2-30" tabindex="-1"></a>lon      <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="sc">-</span><span class="dv">1</span>, <span class="dv">0</span>)</span>
+<span id="cb2-31"><a href="#cb2-31" tabindex="-1"></a>lat      <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="dv">43</span>, <span class="dv">44</span>)</span>
+<span id="cb2-32"><a href="#cb2-32" tabindex="-1"></a>origin   <span class="ot">&lt;-</span> <span class="fu">as.POSIXct</span>(<span class="st">&quot;1900-01-01 00:00:00&quot;</span>, <span class="at">tz =</span> <span class="st">&quot;UTC&quot;</span>)</span>
+<span id="cb2-33"><a href="#cb2-33" tabindex="-1"></a>time_vec <span class="ot">&lt;-</span> <span class="fu">seq</span>(<span class="fu">as.POSIXct</span>(<span class="st">&quot;2011-01-01 00:00&quot;</span>, <span class="at">tz =</span> <span class="st">&quot;UTC&quot;</span>),</span>
+<span id="cb2-34"><a href="#cb2-34" tabindex="-1"></a>                <span class="fu">as.POSIXct</span>(<span class="st">&quot;2014-12-31 23:00&quot;</span>, <span class="at">tz =</span> <span class="st">&quot;UTC&quot;</span>), <span class="at">by =</span> <span class="st">&quot;hour&quot;</span>)</span>
+<span id="cb2-35"><a href="#cb2-35" tabindex="-1"></a></span>
+<span id="cb2-36"><a href="#cb2-36" tabindex="-1"></a>t2m_file <span class="ot">&lt;-</span> <span class="fu">tempfile</span>(<span class="at">fileext =</span> <span class="st">&quot;.nc&quot;</span>)</span>
+<span id="cb2-37"><a href="#cb2-37" tabindex="-1"></a><span class="fu">build_synthetic_t2m</span>(t2m_file, lon, lat, time_vec, origin)</span>
+<span id="cb2-38"><a href="#cb2-38" tabindex="-1"></a></span>
+<span id="cb2-39"><a href="#cb2-39" tabindex="-1"></a>reference_period <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&quot;2011-01-01&quot;</span>, <span class="st">&quot;2013-12-31&quot;</span>)  <span class="co"># 3 years</span></span>
+<span id="cb2-40"><a href="#cb2-40" tabindex="-1"></a>study_period      <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&quot;2011-01-01&quot;</span>, <span class="st">&quot;2014-12-31&quot;</span>)  <span class="co"># 4 years</span></span></code></pre></div>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a>t90_base <span class="ot">&lt;-</span> <span class="fu">temperature_component</span>(</span>
+<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a>  <span class="at">temperature_data_path =</span> t2m_file,</span>
+<span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a>  <span class="at">country_abbrev          =</span> <span class="st">&quot;XXX&quot;</span>,</span>
+<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a>  <span class="at">reference_period         =</span> reference_period,</span>
+<span id="cb3-5"><a href="#cb3-5" tabindex="-1"></a>  <span class="at">study_period             =</span> study_period,</span>
+<span id="cb3-6"><a href="#cb3-6" tabindex="-1"></a>  <span class="at">percentile               =</span> <span class="dv">90</span>, <span class="at">extremum =</span> <span class="st">&quot;max&quot;</span>, <span class="at">above_thresholds =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb3-7"><a href="#cb3-7" tabindex="-1"></a>  <span class="at">area                     =</span> <span class="cn">TRUE</span></span>
+<span id="cb3-8"><a href="#cb3-8" tabindex="-1"></a>)</span>
+<span id="cb3-9"><a href="#cb3-9" tabindex="-1"></a></span>
+<span id="cb3-10"><a href="#cb3-10" tabindex="-1"></a>t90_terra <span class="ot">&lt;-</span> <span class="fu">temperature_component_terra</span>(</span>
+<span id="cb3-11"><a href="#cb3-11" tabindex="-1"></a>  <span class="at">temperature_data_path =</span> t2m_file,</span>
+<span id="cb3-12"><a href="#cb3-12" tabindex="-1"></a>  <span class="at">country_abbrev          =</span> <span class="st">&quot;XXX&quot;</span>,</span>
+<span id="cb3-13"><a href="#cb3-13" tabindex="-1"></a>  <span class="at">reference_period         =</span> reference_period,</span>
+<span id="cb3-14"><a href="#cb3-14" tabindex="-1"></a>  <span class="at">study_period             =</span> study_period,</span>
+<span id="cb3-15"><a href="#cb3-15" tabindex="-1"></a>  <span class="at">percentile               =</span> <span class="dv">90</span>, <span class="at">extremum =</span> <span class="st">&quot;max&quot;</span>, <span class="at">above_thresholds =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb3-16"><a href="#cb3-16" tabindex="-1"></a>  <span class="at">area                     =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb3-17"><a href="#cb3-17" tabindex="-1"></a>  <span class="at">cores                    =</span> <span class="dv">1</span><span class="dt">L</span></span>
+<span id="cb3-18"><a href="#cb3-18" tabindex="-1"></a>)</span>
+<span id="cb3-19"><a href="#cb3-19" tabindex="-1"></a></span>
+<span id="cb3-20"><a href="#cb3-20" tabindex="-1"></a><span class="co"># 2011-2013 (the 3 reference years) reflect the actual data in both engines</span></span>
+<span id="cb3-21"><a href="#cb3-21" tabindex="-1"></a><span class="co"># (see note above); 2014 carries the genuine, trend-driven signal on top --</span></span>
+<span id="cb3-22"><a href="#cb3-22" tabindex="-1"></a><span class="co"># a much more informative comparison than a 2-year reference would give.</span></span>
+<span id="cb3-23"><a href="#cb3-23" tabindex="-1"></a><span class="fu">rbind</span>(<span class="at">base =</span> <span class="fu">round</span>(t90_base, <span class="dv">4</span>), <span class="at">terra =</span> <span class="fu">round</span>(t90_terra, <span class="dv">4</span>))</span>
+<span id="cb3-24"><a href="#cb3-24" tabindex="-1"></a><span class="co">#&gt;       2011-01-01 2011-02-01 2011-03-01 2011-04-01 2011-05-01 2011-06-01 2011-07-01 2011-08-01 2011-09-01 2011-10-01</span></span>
+<span id="cb3-25"><a href="#cb3-25" tabindex="-1"></a><span class="co">#&gt; base     -0.7338    -0.5385    -1.0653    -1.1388    -0.9073          0    -0.8154    -1.0806    -1.1488    -0.9049</span></span>
+<span id="cb3-26"><a href="#cb3-26" tabindex="-1"></a><span class="co">#&gt; terra    -0.7338    -0.5385    -1.0653    -1.1388    -0.9073          0    -0.8154    -1.0806    -1.1488    -0.9049</span></span>
+<span id="cb3-27"><a href="#cb3-27" tabindex="-1"></a><span class="co">#&gt;       2011-11-01 2011-12-01 2012-01-01 2012-02-01 2012-03-01 2012-04-01 2012-05-01 2012-06-01 2012-07-01 2012-08-01</span></span>
+<span id="cb3-28"><a href="#cb3-28" tabindex="-1"></a><span class="co">#&gt; base     -1.0465     -0.923    -0.4052    -0.6154     0.1469     0.7347     -0.165          1    -0.3004     0.8927</span></span>
+<span id="cb3-29"><a href="#cb3-29" tabindex="-1"></a><span class="co">#&gt; terra    -1.0465     -0.923    -0.4052    -0.6154     0.1469     0.7347     -0.165          1    -0.3004     0.8927</span></span>
+<span id="cb3-30"><a href="#cb3-30" tabindex="-1"></a><span class="co">#&gt;       2012-09-01 2012-10-01 2012-11-01 2012-12-01 2013-01-01 2013-02-01 2013-03-01 2013-04-01 2013-05-01 2013-06-01</span></span>
+<span id="cb3-31"><a href="#cb3-31" tabindex="-1"></a><span class="co">#&gt; base      0.6757    -0.1687     0.1006    -0.1393      1.139     1.1538     0.9184     0.4041     1.0722         -1</span></span>
+<span id="cb3-32"><a href="#cb3-32" tabindex="-1"></a><span class="co">#&gt; terra     0.6757    -0.1687     0.1006    -0.1393      1.139     1.1538     0.9184     0.4041     1.0722         -1</span></span>
+<span id="cb3-33"><a href="#cb3-33" tabindex="-1"></a><span class="co">#&gt;       2013-07-01 2013-08-01 2013-09-01 2013-10-01 2013-11-01 2013-12-01 2014-01-01 2014-02-01 2014-03-01 2014-04-01</span></span>
+<span id="cb3-34"><a href="#cb3-34" tabindex="-1"></a><span class="co">#&gt; base      1.1158     0.1879      0.473     1.0736     0.9459     1.0624     1.4019     2.0619     1.5245     1.6715</span></span>
+<span id="cb3-35"><a href="#cb3-35" tabindex="-1"></a><span class="co">#&gt; terra     1.1158     0.1879      0.473     1.0736     0.9459     1.0624     1.4019     2.0619     1.5245     1.6715</span></span>
+<span id="cb3-36"><a href="#cb3-36" tabindex="-1"></a><span class="co">#&gt;       2014-05-01 2014-06-01 2014-07-01 2014-08-01 2014-09-01 2014-10-01 2014-11-01 2014-12-01</span></span>
+<span id="cb3-37"><a href="#cb3-37" tabindex="-1"></a><span class="co">#&gt; base      3.5466         12     2.6607     2.4432      1.419     1.2577     1.9119      2.264</span></span>
+<span id="cb3-38"><a href="#cb3-38" tabindex="-1"></a><span class="co">#&gt; terra     3.5466         12     2.6607     2.4432      1.419     1.2577     1.9119      2.264</span></span>
+<span id="cb3-39"><a href="#cb3-39" tabindex="-1"></a><span class="fu">all.equal</span>(<span class="fu">as.numeric</span>(t90_base), <span class="fu">as.numeric</span>(t90_terra), <span class="at">tolerance =</span> <span class="fl">1e-6</span>)</span>
+<span id="cb3-40"><a href="#cb3-40" tabindex="-1"></a><span class="co">#&gt; [1] TRUE</span></span></code></pre></div>
+<p>On real, large data the two would differ only in memory footprint and
+runtime, not in the values returned.</p>
+</div>
+<div id="via-calculate_aci" class="section level2">
+<h2>Via <code>calculate_aci()</code></h2>
+<p>Rather than swapping individual functions, pass
+<code>engine = &quot;terra&quot;</code> to <code>calculate_aci()</code> directly —
+everything else about the call stays the same (see
+<code>vignette(&quot;xaci-full-pipeline&quot;)</code> for the base-engine version
+of this call):</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a>results_dir <span class="ot">&lt;-</span> tools<span class="sc">::</span><span class="fu">R_user_dir</span>(<span class="st">&quot;xaci&quot;</span>, <span class="at">which =</span> <span class="st">&quot;data&quot;</span>)</span>
+<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a></span>
+<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a><span class="fu">calculate_aci</span>(</span>
+<span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a>  <span class="at">country_abbrev      =</span> <span class="st">&quot;FRA&quot;</span>,</span>
+<span id="cb4-5"><a href="#cb4-5" tabindex="-1"></a>  <span class="at">study_period         =</span> <span class="fu">c</span>(<span class="st">&quot;2000-01-01&quot;</span>, <span class="st">&quot;2024-12-31&quot;</span>),</span>
+<span id="cb4-6"><a href="#cb4-6" tabindex="-1"></a>  <span class="at">reference_period      =</span> <span class="fu">c</span>(<span class="st">&quot;2000-01-01&quot;</span>, <span class="st">&quot;2012-12-31&quot;</span>),</span>
+<span id="cb4-7"><a href="#cb4-7" tabindex="-1"></a>  <span class="at">years                  =</span> <span class="dv">2000</span><span class="sc">:</span><span class="dv">2024</span>,</span>
+<span id="cb4-8"><a href="#cb4-8" tabindex="-1"></a>  <span class="at">granularity             =</span> <span class="st">&quot;month&quot;</span>,</span>
+<span id="cb4-9"><a href="#cb4-9" tabindex="-1"></a>  <span class="at">area                     =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb4-10"><a href="#cb4-10" tabindex="-1"></a>  <span class="at">factor                   =</span> <span class="dv">1</span> <span class="sc">/</span> <span class="dv">5</span>,</span>
+<span id="cb4-11"><a href="#cb4-11" tabindex="-1"></a>  <span class="at">admin_level               =</span> <span class="cn">NULL</span>,</span>
+<span id="cb4-12"><a href="#cb4-12" tabindex="-1"></a>  <span class="at">save                       =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb4-13"><a href="#cb4-13" tabindex="-1"></a>  <span class="at">save_dir                   =</span> results_dir,</span>
+<span id="cb4-14"><a href="#cb4-14" tabindex="-1"></a>  <span class="at">computed_components         =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb4-15"><a href="#cb4-15" tabindex="-1"></a>  <span class="at">engine                       =</span> <span class="st">&quot;terra&quot;</span>,   <span class="co"># &lt;- memory-safe loading &amp; reduction</span></span>
+<span id="cb4-16"><a href="#cb4-16" tabindex="-1"></a>  <span class="at">cores                         =</span> <span class="dv">12</span>         <span class="co"># &lt;- forwarded to temperature_component_terra()</span></span>
+<span id="cb4-17"><a href="#cb4-17" tabindex="-1"></a>)</span></code></pre></div>
+<p><code>engine = &quot;base&quot;</code> (the default) reproduces the original
+behaviour exactly. Cached <code>.rds</code> files are named identically
+regardless of which engine produced them, so a later call with
+<code>computed_components = TRUE</code> reloads them the same way either
+way.</p>
+</div>
+<div id="the-cores-argument" class="section level2">
+<h2>The <code>cores</code> argument</h2>
+<p><code>cores</code> is only meaningful for
+<code>engine = &quot;terra&quot;</code>, and only affects
+<code>temperature_component_terra()</code>: its rolling-percentile step
+(<code>terra::roll()</code>, via
+<code>calculate_percentiles_terra()</code>) is by far the most expensive
+part of the terra pipeline and has no native parallelisation, so
+<code>cores</code> controls a manual chunked-parallel implementation
+instead. It is silently ignored when <code>engine = &quot;base&quot;</code> (the
+base <code>temperature_component()</code> has no such parameter, so
+<code>calculate_aci()</code> only forwards <code>cores</code> when
+<code>engine = &quot;terra&quot;</code>).</p>
+</div>
+
+
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

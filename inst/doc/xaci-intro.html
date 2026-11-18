@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+
+
+<title>Get Started with xaci</title>
+
+<script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
+// be compatible with the behavior of Pandoc < 2.8).
+document.addEventListener('DOMContentLoaded', function(e) {
+  var hs = document.querySelectorAll("div.section[class*='level'] > :first-child");
+  var i, h, a;
+  for (i = 0; i < hs.length; i++) {
+    h = hs[i];
+    if (!/^h[1-6]$/i.test(h.tagName)) continue;  // it should be a header h1-h6
+    a = h.attributes;
+    while (a.length > 0) h.removeAttribute(a[0].name);
+  }
+});
+</script>
+
+<style type="text/css">
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+span.underline{text-decoration: underline;}
+div.column{display: inline-block; vertical-align: top; width: 50%;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+</style>
+
+
+
+<style type="text/css">
+code {
+white-space: pre;
+}
+.sourceCode {
+overflow: visible;
+}
+</style>
+<style type="text/css" data-origin="pandoc">
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+{ counter-reset: source-line 0; }
+pre.numberSource code > span
+{ position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+{ content: counter(source-line);
+position: relative; left: -1em; text-align: right; vertical-align: baseline;
+border: none; display: inline-block;
+-webkit-touch-callout: none; -webkit-user-select: none;
+-khtml-user-select: none; -moz-user-select: none;
+-ms-user-select: none; user-select: none;
+padding: 0 4px; width: 4em;
+color: #aaaaaa;
+}
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa; padding-left: 4px; }
+div.sourceCode
+{ }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } 
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.at { color: #7d9029; } 
+code span.bn { color: #40a070; } 
+code span.bu { color: #008000; } 
+code span.cf { color: #007020; font-weight: bold; } 
+code span.ch { color: #4070a0; } 
+code span.cn { color: #880000; } 
+code span.co { color: #60a0b0; font-style: italic; } 
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.do { color: #ba2121; font-style: italic; } 
+code span.dt { color: #902000; } 
+code span.dv { color: #40a070; } 
+code span.er { color: #ff0000; font-weight: bold; } 
+code span.ex { } 
+code span.fl { color: #40a070; } 
+code span.fu { color: #06287e; } 
+code span.im { color: #008000; font-weight: bold; } 
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.kw { color: #007020; font-weight: bold; } 
+code span.op { color: #666666; } 
+code span.ot { color: #007020; } 
+code span.pp { color: #bc7a00; } 
+code span.sc { color: #4070a0; } 
+code span.ss { color: #bb6688; } 
+code span.st { color: #4070a0; } 
+code span.va { color: #19177c; } 
+code span.vs { color: #4070a0; } 
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } 
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    var j = 0;
+    while (j < rules.length) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") {
+        j++;
+        continue;
+      }
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' && rule.style.backgroundColor === '') {
+        j++;
+        continue;
+      }
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
+
+
+
+
+<style type="text/css">body {
+background-color: #fff;
+margin: 1em auto;
+max-width: 700px;
+overflow: visible;
+padding-left: 2em;
+padding-right: 2em;
+font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+font-size: 14px;
+line-height: 1.35;
+}
+#TOC {
+clear: both;
+margin: 0 0 10px 10px;
+padding: 4px;
+width: 400px;
+border: 1px solid #CCCCCC;
+border-radius: 5px;
+background-color: #f6f6f6;
+font-size: 13px;
+line-height: 1.3;
+}
+#TOC .toctitle {
+font-weight: bold;
+font-size: 15px;
+margin-left: 5px;
+}
+#TOC ul {
+padding-left: 40px;
+margin-left: -1.5em;
+margin-top: 5px;
+margin-bottom: 5px;
+}
+#TOC ul ul {
+margin-left: -2em;
+}
+#TOC li {
+line-height: 16px;
+}
+table {
+margin: 1em auto;
+border-width: 1px;
+border-color: #DDDDDD;
+border-style: outset;
+border-collapse: collapse;
+}
+table th {
+border-width: 2px;
+padding: 5px;
+border-style: inset;
+}
+table td {
+border-width: 1px;
+border-style: inset;
+line-height: 18px;
+padding: 5px 5px;
+}
+table, table th, table td {
+border-left-style: none;
+border-right-style: none;
+}
+table thead, table tr.even {
+background-color: #f7f7f7;
+}
+p {
+margin: 0.5em 0;
+}
+blockquote {
+background-color: #f6f6f6;
+padding: 0.25em 0.75em;
+}
+hr {
+border-style: solid;
+border: none;
+border-top: 1px solid #777;
+margin: 28px 0;
+}
+dl {
+margin-left: 0;
+}
+dl dd {
+margin-bottom: 13px;
+margin-left: 13px;
+}
+dl dt {
+font-weight: bold;
+}
+ul {
+margin-top: 0;
+}
+ul li {
+list-style: circle outside;
+}
+ul ul {
+margin-bottom: 0;
+}
+pre, code {
+background-color: #f7f7f7;
+border-radius: 3px;
+color: #333;
+white-space: pre-wrap; 
+}
+pre {
+border-radius: 3px;
+margin: 5px 0px 10px 0px;
+padding: 10px;
+}
+pre:not([class]) {
+background-color: #f7f7f7;
+}
+code {
+font-family: Consolas, Monaco, 'Courier New', monospace;
+font-size: 85%;
+}
+p > code, li > code {
+padding: 2px 0px;
+}
+div.figure {
+text-align: center;
+}
+img {
+background-color: #FFFFFF;
+padding: 2px;
+border: 1px solid #DDDDDD;
+border-radius: 3px;
+border: 1px solid #CCCCCC;
+margin: 0 5px;
+}
+h1 {
+margin-top: 0;
+font-size: 35px;
+line-height: 40px;
+}
+h2 {
+border-bottom: 4px solid #f7f7f7;
+padding-top: 10px;
+padding-bottom: 2px;
+font-size: 145%;
+}
+h3 {
+border-bottom: 2px solid #f7f7f7;
+padding-top: 10px;
+font-size: 120%;
+}
+h4 {
+border-bottom: 1px solid #f7f7f7;
+margin-left: 8px;
+font-size: 105%;
+}
+h5, h6 {
+border-bottom: 1px solid #ccc;
+font-size: 105%;
+}
+a {
+color: #0033dd;
+text-decoration: none;
+}
+a:hover {
+color: #6666ff; }
+a:visited {
+color: #800080; }
+a:visited:hover {
+color: #BB00BB; }
+a[href^="http:"] {
+text-decoration: underline; }
+a[href^="https:"] {
+text-decoration: underline; }
+
+code > span.kw { color: #555; font-weight: bold; } 
+code > span.dt { color: #902000; } 
+code > span.dv { color: #40a070; } 
+code > span.bn { color: #d14; } 
+code > span.fl { color: #d14; } 
+code > span.ch { color: #d14; } 
+code > span.st { color: #d14; } 
+code > span.co { color: #888888; font-style: italic; } 
+code > span.ot { color: #007020; } 
+code > span.al { color: #ff0000; font-weight: bold; } 
+code > span.fu { color: #900; font-weight: bold; } 
+code > span.er { color: #a61717; background-color: #e3d2d2; } 
+</style>
+
+
+
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">Get Started with xaci</h1>
+
+
+
+<div id="what-is-the-actuarial-climate-index" class="section level2">
+<h2>What is the Actuarial Climate Index?</h2>
+<p>The <strong>Actuarial Climate Index (ACI)</strong> is a standardised
+measure of the frequency and severity of extreme climate events,
+originally developed by the American Academy of Actuaries and adapted
+here for France/Europe following Garrido, Milhaud &amp; Olympio (2026).
+It combines six components, each expressed as a standardised anomaly
+relative to a reference period:</p>
+<p><span class="math display">\[ACI = \frac{T_{90} - T_{10} + P + D +
+\alpha \cdot SL + W}{5 + \alpha}\]</span></p>
+<table>
+<thead>
+<tr class="header">
+<th>Symbol</th>
+<th>Component</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><span class="math inline">\(T_{90}\)</span></td>
+<td>Frequency of hot days (90th percentile)</td>
+</tr>
+<tr class="even">
+<td><span class="math inline">\(T_{10}\)</span></td>
+<td>Frequency of cold nights (10th percentile)</td>
+</tr>
+<tr class="odd">
+<td><span class="math inline">\(P\)</span></td>
+<td>Maximum sliding precipitation (5-day window)</td>
+</tr>
+<tr class="even">
+<td><span class="math inline">\(D\)</span></td>
+<td>Consecutive dry days (CDD)</td>
+</tr>
+<tr class="odd">
+<td><span class="math inline">\(SL\)</span></td>
+<td>Standardised sea level</td>
+</tr>
+<tr class="even">
+<td><span class="math inline">\(W\)</span></td>
+<td>Wind power above the 90th percentile</td>
+</tr>
+<tr class="odd">
+<td><span class="math inline">\(\alpha\)</span></td>
+<td>Coastal fraction (national default <span class="math inline">\(1/5\)</span>)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>xaci</strong> computes each of these components from gridded
+ERA5 climate data (temperature, precipitation, wind) and from PSMSL
+tide-gauge records (sea level), and aggregates them into the index above
+at whatever temporal granularity (monthly, seasonal, semester, annual)
+and spatial level (national, administrative unit, or grid cell) you
+need.</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="fu">library</span>(xaci)</span></code></pre></div>
+</div>
+<div id="the-four-step-workflow" class="section level2">
+<h2>The four-step workflow</h2>
+<p>Because ERA5 data can be large (hourly, multi-decade, whole-country),
+xaci splits the work into four steps. Steps 1-3 are one-off, heavy
+computations; step 4 is the fast, repeatable step used for day-to-day
+exploration.</p>
+<pre><code>Step 1 (long)   Step 2 (short)   Step 3 (long)              Step 4 (fast, repeatable)
+ERA5 download → Country mask  → Grid-cell components     →  ACI / components at any
+(cache dir)      (cache dir)     (cache dir, .rds)           temporal &amp; spatial level</code></pre>
+<ul>
+<li><strong>Step 1</strong> downloads the four required ERA5 variables
+(<code>t2m</code>, <code>tp</code>, <code>u10</code>, <code>v10</code>)
+via <code>download_era5_all()</code> / <code>download_era5()</code>
+(requires a free Copernicus CDS account and the <code>ecmwfr</code>
+package).</li>
+<li><strong>Step 2</strong> downloads a land/sea country mask with
+<code>download_mask()</code>.</li>
+<li><strong>Step 3</strong> computes each component at grid-cell /
+monthly resolution and caches it to disk (<code>save = TRUE</code>) —
+this is the expensive step, done once per country and reference
+period.</li>
+<li><strong>Step 4</strong> reloads the cached components
+(<code>computed_components = TRUE</code>) and re-aggregates them on the
+fly to any granularity or spatial level you ask for — this is the step
+you repeat while exploring the data.</li>
+</ul>
+<p><code>calculate_aci()</code> runs the whole pipeline (steps 3-4
+combined, or step 4 alone if <code>computed_components = TRUE</code>);
+each component can also be computed individually with
+<code>temperature_component()</code>,
+<code>precipitation_component()</code>,
+<code>drought_component()</code>, <code>wind_component()</code> and
+<code>sealevel_component()</code>. This is covered in detail in
+<code>vignette(&quot;xaci-components&quot;)</code>.</p>
+<div id="where-things-get-cached" class="section level3">
+<h3>Where things get cached</h3>
+<p>Steps 1-3 all write to disk, via a <code>dest_dir</code> (download
+functions) or <code>save_dir</code> (component functions) argument. In
+every case, this argument defaults to <code>NULL</code>, which resolves
+to a sub-directory of <code>tempdir()</code> — safe, zero-config, and
+cleared automatically at the end of the R session, in line with CRAN
+policy (packages must not write to the user’s home filespace by
+default).</p>
+<p>Since the whole point of steps 1-3 is to avoid repeating long
+computations, you will usually want a directory that
+<strong>persists</strong> across sessions instead. Pass your own path
+explicitly; <code>tools::R_user_dir(&quot;xaci&quot;, which = &quot;data&quot;)</code> is a
+convenient, per-user location that works well for this (it is what
+<code>xaci</code> itself uses internally to cache administrative
+boundaries). Because step 1 requires network access and a personal CDS
+token, it cannot be demonstrated inside a vignette; here is the shape of
+the call you would use with your own data:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a><span class="fu">library</span>(ecmwfr)</span>
+<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a><span class="fu">cds_set_key</span>(<span class="st">&quot;xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx&quot;</span>)</span>
+<span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a></span>
+<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a>data_dir <span class="ot">&lt;-</span> tools<span class="sc">::</span><span class="fu">R_user_dir</span>(<span class="st">&quot;xaci&quot;</span>, <span class="at">which =</span> <span class="st">&quot;data&quot;</span>)</span>
+<span id="cb3-5"><a href="#cb3-5" tabindex="-1"></a></span>
+<span id="cb3-6"><a href="#cb3-6" tabindex="-1"></a><span class="fu">download_era5_all</span>(</span>
+<span id="cb3-7"><a href="#cb3-7" tabindex="-1"></a>  <span class="at">years          =</span> <span class="dv">2010</span><span class="sc">:</span><span class="dv">2020</span>,</span>
+<span id="cb3-8"><a href="#cb3-8" tabindex="-1"></a>  <span class="at">area           =</span> <span class="fu">c</span>(<span class="fl">51.5</span>, <span class="sc">-</span><span class="fl">5.5</span>, <span class="fl">41.0</span>, <span class="fl">10.0</span>),   <span class="co"># N, W, S, E (metropolitan France)</span></span>
+<span id="cb3-9"><a href="#cb3-9" tabindex="-1"></a>  <span class="at">country_abbrev =</span> <span class="st">&quot;FRA&quot;</span>,</span>
+<span id="cb3-10"><a href="#cb3-10" tabindex="-1"></a>  <span class="at">dest_dir       =</span> data_dir</span>
+<span id="cb3-11"><a href="#cb3-11" tabindex="-1"></a>)</span>
+<span id="cb3-12"><a href="#cb3-12" tabindex="-1"></a></span>
+<span id="cb3-13"><a href="#cb3-13" tabindex="-1"></a><span class="fu">download_mask</span>(</span>
+<span id="cb3-14"><a href="#cb3-14" tabindex="-1"></a>  <span class="at">country_abbrev =</span> <span class="st">&quot;FRA&quot;</span>,</span>
+<span id="cb3-15"><a href="#cb3-15" tabindex="-1"></a>  <span class="at">area           =</span> <span class="fu">c</span>(<span class="fl">51.5</span>, <span class="sc">-</span><span class="fl">5.5</span>, <span class="fl">41.0</span>, <span class="fl">10.0</span>),</span>
+<span id="cb3-16"><a href="#cb3-16" tabindex="-1"></a>  <span class="at">dest_dir       =</span> data_dir</span>
+<span id="cb3-17"><a href="#cb3-17" tabindex="-1"></a>)</span></code></pre></div>
+</div>
+</div>
+<div id="a-minimal-worked-example" class="section level2">
+<h2>A minimal worked example</h2>
+<p>The rest of this vignette (and the ones that follow) instead work on
+a tiny, self-contained <strong>synthetic</strong> dataset built in a few
+lines of R, so that the code below runs anywhere, with no downloads and
+no CDS account. The synthetic data mimics the structure of a real ERA5
+extract: an hourly NetCDF file with <code>longitude</code> /
+<code>latitude</code> / <code>time</code> dimensions, plus a
+<code>country</code> land-mask NetCDF, exactly what
+<code>temperature_component()</code> and friends expect.</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a>build_synthetic_t2m <span class="ot">&lt;-</span> <span class="cf">function</span>(path, lon, lat, time_vec, origin) {</span>
+<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a>  time_hours <span class="ot">&lt;-</span> <span class="fu">as.numeric</span>(<span class="fu">difftime</span>(time_vec, origin, <span class="at">units =</span> <span class="st">&quot;hours&quot;</span>))</span>
+<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a>  nlo <span class="ot">&lt;-</span> <span class="fu">length</span>(lon); nla <span class="ot">&lt;-</span> <span class="fu">length</span>(lat); nt <span class="ot">&lt;-</span> <span class="fu">length</span>(time_vec)</span>
+<span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a></span>
+<span id="cb4-5"><a href="#cb4-5" tabindex="-1"></a>  <span class="fu">set.seed</span>(<span class="dv">1</span>)</span>
+<span id="cb4-6"><a href="#cb4-6" tabindex="-1"></a>  seasonal <span class="ot">&lt;-</span> <span class="dv">288</span> <span class="sc">+</span> <span class="dv">10</span> <span class="sc">*</span> <span class="fu">sin</span>(<span class="dv">2</span> <span class="sc">*</span> pi <span class="sc">*</span> <span class="fu">seq_len</span>(nt) <span class="sc">/</span> (<span class="dv">24</span> <span class="sc">*</span> <span class="dv">365</span>))  <span class="co"># ~15C in Kelvin</span></span>
+<span id="cb4-7"><a href="#cb4-7" tabindex="-1"></a>  warming  <span class="ot">&lt;-</span> <span class="fl">0.6</span> <span class="sc">*</span> <span class="fu">seq_len</span>(nt) <span class="sc">/</span> nt   <span class="co"># a mild warming trend across the series</span></span>
+<span id="cb4-8"><a href="#cb4-8" tabindex="-1"></a>  vals <span class="ot">&lt;-</span> <span class="fu">array</span>(<span class="cn">NA_real_</span>, <span class="at">dim =</span> <span class="fu">c</span>(nlo, nla, nt))</span>
+<span id="cb4-9"><a href="#cb4-9" tabindex="-1"></a>  <span class="cf">for</span> (i <span class="cf">in</span> <span class="fu">seq_len</span>(nlo)) {</span>
+<span id="cb4-10"><a href="#cb4-10" tabindex="-1"></a>    <span class="cf">for</span> (j <span class="cf">in</span> <span class="fu">seq_len</span>(nla)) {</span>
+<span id="cb4-11"><a href="#cb4-11" tabindex="-1"></a>      vals[i, j, ] <span class="ot">&lt;-</span> seasonal <span class="sc">+</span> warming <span class="sc">+</span> (i <span class="sc">+</span> j) <span class="sc">+</span> <span class="fu">rnorm</span>(nt, <span class="at">sd =</span> <span class="fl">1.5</span>)</span>
+<span id="cb4-12"><a href="#cb4-12" tabindex="-1"></a>    }</span>
+<span id="cb4-13"><a href="#cb4-13" tabindex="-1"></a>  }</span>
+<span id="cb4-14"><a href="#cb4-14" tabindex="-1"></a></span>
+<span id="cb4-15"><a href="#cb4-15" tabindex="-1"></a>  dim_lon  <span class="ot">&lt;-</span> ncdf4<span class="sc">::</span><span class="fu">ncdim_def</span>(<span class="st">&quot;longitude&quot;</span>, <span class="st">&quot;degrees_east&quot;</span>, lon)</span>
+<span id="cb4-16"><a href="#cb4-16" tabindex="-1"></a>  dim_lat  <span class="ot">&lt;-</span> ncdf4<span class="sc">::</span><span class="fu">ncdim_def</span>(<span class="st">&quot;latitude&quot;</span>, <span class="st">&quot;degrees_north&quot;</span>, lat)</span>
+<span id="cb4-17"><a href="#cb4-17" tabindex="-1"></a>  dim_time <span class="ot">&lt;-</span> ncdf4<span class="sc">::</span><span class="fu">ncdim_def</span>(</span>
+<span id="cb4-18"><a href="#cb4-18" tabindex="-1"></a>    <span class="st">&quot;time&quot;</span>, <span class="fu">paste0</span>(<span class="st">&quot;hours since &quot;</span>, <span class="fu">format</span>(origin, <span class="st">&quot;%Y-%m-%d %H:%M:%S&quot;</span>)),</span>
+<span id="cb4-19"><a href="#cb4-19" tabindex="-1"></a>    time_hours, <span class="at">unlim =</span> <span class="cn">TRUE</span></span>
+<span id="cb4-20"><a href="#cb4-20" tabindex="-1"></a>  )</span>
+<span id="cb4-21"><a href="#cb4-21" tabindex="-1"></a>  var_t2m <span class="ot">&lt;-</span> ncdf4<span class="sc">::</span><span class="fu">ncvar_def</span>(<span class="st">&quot;t2m&quot;</span>, <span class="st">&quot;K&quot;</span>, <span class="fu">list</span>(dim_lon, dim_lat, dim_time),</span>
+<span id="cb4-22"><a href="#cb4-22" tabindex="-1"></a>                              <span class="at">missval =</span> <span class="cn">NA</span>, <span class="at">prec =</span> <span class="st">&quot;double&quot;</span>)</span>
+<span id="cb4-23"><a href="#cb4-23" tabindex="-1"></a></span>
+<span id="cb4-24"><a href="#cb4-24" tabindex="-1"></a>  nc <span class="ot">&lt;-</span> ncdf4<span class="sc">::</span><span class="fu">nc_create</span>(path, <span class="fu">list</span>(var_t2m))</span>
+<span id="cb4-25"><a href="#cb4-25" tabindex="-1"></a>  ncdf4<span class="sc">::</span><span class="fu">ncvar_put</span>(nc, var_t2m, vals)</span>
+<span id="cb4-26"><a href="#cb4-26" tabindex="-1"></a>  ncdf4<span class="sc">::</span><span class="fu">nc_close</span>(nc)</span>
+<span id="cb4-27"><a href="#cb4-27" tabindex="-1"></a>  <span class="fu">invisible</span>(path)</span>
+<span id="cb4-28"><a href="#cb4-28" tabindex="-1"></a>}</span>
+<span id="cb4-29"><a href="#cb4-29" tabindex="-1"></a></span>
+<span id="cb4-30"><a href="#cb4-30" tabindex="-1"></a>build_synthetic_mask <span class="ot">&lt;-</span> <span class="cf">function</span>(path, lon, lat) {</span>
+<span id="cb4-31"><a href="#cb4-31" tabindex="-1"></a>  dim_lon <span class="ot">&lt;-</span> ncdf4<span class="sc">::</span><span class="fu">ncdim_def</span>(<span class="st">&quot;longitude&quot;</span>, <span class="st">&quot;degrees_east&quot;</span>, lon)</span>
+<span id="cb4-32"><a href="#cb4-32" tabindex="-1"></a>  dim_lat <span class="ot">&lt;-</span> ncdf4<span class="sc">::</span><span class="fu">ncdim_def</span>(<span class="st">&quot;latitude&quot;</span>, <span class="st">&quot;degrees_north&quot;</span>, lat)</span>
+<span id="cb4-33"><a href="#cb4-33" tabindex="-1"></a>  var_mask <span class="ot">&lt;-</span> ncdf4<span class="sc">::</span><span class="fu">ncvar_def</span>(<span class="st">&quot;country&quot;</span>, <span class="st">&quot;1&quot;</span>, <span class="fu">list</span>(dim_lon, dim_lat),</span>
+<span id="cb4-34"><a href="#cb4-34" tabindex="-1"></a>                               <span class="at">missval =</span> <span class="cn">NA</span>, <span class="at">prec =</span> <span class="st">&quot;double&quot;</span>)</span>
+<span id="cb4-35"><a href="#cb4-35" tabindex="-1"></a>  nc <span class="ot">&lt;-</span> ncdf4<span class="sc">::</span><span class="fu">nc_create</span>(path, <span class="fu">list</span>(var_mask))</span>
+<span id="cb4-36"><a href="#cb4-36" tabindex="-1"></a>  <span class="co"># All cells fully &quot;inside&quot; the (fictitious) country for this example</span></span>
+<span id="cb4-37"><a href="#cb4-37" tabindex="-1"></a>  ncdf4<span class="sc">::</span><span class="fu">ncvar_put</span>(nc, var_mask, <span class="fu">matrix</span>(<span class="dv">1</span>, <span class="fu">length</span>(lon), <span class="fu">length</span>(lat)))</span>
+<span id="cb4-38"><a href="#cb4-38" tabindex="-1"></a>  ncdf4<span class="sc">::</span><span class="fu">nc_close</span>(nc)</span>
+<span id="cb4-39"><a href="#cb4-39" tabindex="-1"></a>  <span class="fu">invisible</span>(path)</span>
+<span id="cb4-40"><a href="#cb4-40" tabindex="-1"></a>}</span></code></pre></div>
+<p>We build four years of hourly data on a tiny 2x2 grid:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a>lon      <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="sc">-</span><span class="dv">1</span>, <span class="dv">0</span>)</span>
+<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a>lat      <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="dv">43</span>, <span class="dv">44</span>)</span>
+<span id="cb5-3"><a href="#cb5-3" tabindex="-1"></a>origin   <span class="ot">&lt;-</span> <span class="fu">as.POSIXct</span>(<span class="st">&quot;1900-01-01 00:00:00&quot;</span>, <span class="at">tz =</span> <span class="st">&quot;UTC&quot;</span>)</span>
+<span id="cb5-4"><a href="#cb5-4" tabindex="-1"></a>time_vec <span class="ot">&lt;-</span> <span class="fu">seq</span>(<span class="fu">as.POSIXct</span>(<span class="st">&quot;2011-01-01 00:00&quot;</span>, <span class="at">tz =</span> <span class="st">&quot;UTC&quot;</span>),</span>
+<span id="cb5-5"><a href="#cb5-5" tabindex="-1"></a>                <span class="fu">as.POSIXct</span>(<span class="st">&quot;2014-12-31 23:00&quot;</span>, <span class="at">tz =</span> <span class="st">&quot;UTC&quot;</span>), <span class="at">by =</span> <span class="st">&quot;hour&quot;</span>)</span>
+<span id="cb5-6"><a href="#cb5-6" tabindex="-1"></a></span>
+<span id="cb5-7"><a href="#cb5-7" tabindex="-1"></a>t2m_file  <span class="ot">&lt;-</span> <span class="fu">tempfile</span>(<span class="at">fileext =</span> <span class="st">&quot;.nc&quot;</span>)</span>
+<span id="cb5-8"><a href="#cb5-8" tabindex="-1"></a>mask_file <span class="ot">&lt;-</span> <span class="fu">tempfile</span>(<span class="at">fileext =</span> <span class="st">&quot;.nc&quot;</span>)</span>
+<span id="cb5-9"><a href="#cb5-9" tabindex="-1"></a></span>
+<span id="cb5-10"><a href="#cb5-10" tabindex="-1"></a><span class="fu">build_synthetic_t2m</span>(t2m_file, lon, lat, time_vec, origin)</span>
+<span id="cb5-11"><a href="#cb5-11" tabindex="-1"></a><span class="fu">build_synthetic_mask</span>(mask_file, lon, lat)</span></code></pre></div>
+<p>…and compute the T90 component (frequency of hot days), standardised
+against 2011 as a <strong>reference</strong> period, over the full two
+years as the <strong>study</strong> period. This distinction matters: if
+<code>study_period</code> were set equal to
+<code>reference_period</code> here (a single year), every month would
+have exactly one observation to compare against itself, and the
+standardised anomaly would be identically zero for every month, by
+construction — not a bug, just a degenerate case worth being aware of
+when experimenting with short, synthetic examples like this one.</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a>reference_period <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&quot;2011-01-01&quot;</span>, <span class="st">&quot;2013-12-31&quot;</span>)</span>
+<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a>study_period      <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&quot;2011-01-01&quot;</span>, <span class="st">&quot;2014-12-31&quot;</span>)</span>
+<span id="cb6-3"><a href="#cb6-3" tabindex="-1"></a></span>
+<span id="cb6-4"><a href="#cb6-4" tabindex="-1"></a>t90 <span class="ot">&lt;-</span> <span class="fu">temperature_component</span>(</span>
+<span id="cb6-5"><a href="#cb6-5" tabindex="-1"></a>  <span class="at">temperature_data_path =</span> t2m_file,</span>
+<span id="cb6-6"><a href="#cb6-6" tabindex="-1"></a>  <span class="at">country_abbrev         =</span> <span class="st">&quot;XXX&quot;</span>,</span>
+<span id="cb6-7"><a href="#cb6-7" tabindex="-1"></a>  <span class="at">reference_period       =</span> reference_period,</span>
+<span id="cb6-8"><a href="#cb6-8" tabindex="-1"></a>  <span class="at">study_period            =</span> study_period,</span>
+<span id="cb6-9"><a href="#cb6-9" tabindex="-1"></a>  <span class="at">mask_path               =</span> mask_file,</span>
+<span id="cb6-10"><a href="#cb6-10" tabindex="-1"></a>  <span class="at">percentile              =</span> <span class="dv">90</span>,</span>
+<span id="cb6-11"><a href="#cb6-11" tabindex="-1"></a>  <span class="at">extremum                =</span> <span class="st">&quot;max&quot;</span>,</span>
+<span id="cb6-12"><a href="#cb6-12" tabindex="-1"></a>  <span class="at">above_thresholds        =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb6-13"><a href="#cb6-13" tabindex="-1"></a>  <span class="at">area                    =</span> <span class="cn">TRUE</span>     <span class="co"># national (spatially averaged) series</span></span>
+<span id="cb6-14"><a href="#cb6-14" tabindex="-1"></a>)</span>
+<span id="cb6-15"><a href="#cb6-15" tabindex="-1"></a></span>
+<span id="cb6-16"><a href="#cb6-16" tabindex="-1"></a><span class="fu">head</span>(t90, <span class="dv">14</span>)</span>
+<span id="cb6-17"><a href="#cb6-17" tabindex="-1"></a><span class="co">#&gt; 2011-01-01 2011-02-01 2011-03-01 2011-04-01 2011-05-01 2011-06-01 2011-07-01 2011-08-01 2011-09-01 2011-10-01 </span></span>
+<span id="cb6-18"><a href="#cb6-18" tabindex="-1"></a><span class="co">#&gt; -0.8867964 -0.6175917 -0.9532076 -1.1031405 -0.4402255 -1.0000000 -1.0154893 -0.9072647 -0.2182179 -1.0816841 </span></span>
+<span id="cb6-19"><a href="#cb6-19" tabindex="-1"></a><span class="co">#&gt; 2011-11-01 2011-12-01 2012-01-01 2012-02-01 </span></span>
+<span id="cb6-20"><a href="#cb6-20" tabindex="-1"></a><span class="co">#&gt; -0.8663254 -0.6305539 -0.1970659 -0.5361511</span></span></code></pre></div>
+<p>Note that every 2011 month is exactly <code>0</code>: that year
+<em>is</em> the reference period, so each of its months is being
+compared to itself, by construction. 2012’s months show real anomalies
+instead, since the mild warming trend built into the synthetic data (see
+the code above) makes 2012 run warmer than the 2011 baseline.</p>
+<p><code>t90</code> is a named numeric vector: one standardised value
+per month, positive values indicating months with more hot days than the
+reference average, negative values fewer. This is exactly the kind of
+object that feeds into <code>calculate_aci()</code>. The next vignettes
+build on this same synthetic-data pattern to cover:</p>
+<ul>
+<li><code>vignette(&quot;xaci-components&quot;)</code> — computing all six
+components individually, including the sea-level component from PSMSL
+station data.</li>
+<li><code>vignette(&quot;xaci-full-pipeline&quot;)</code> — running
+<code>calculate_aci()</code> end to end and interpreting its
+output.</li>
+<li><code>vignette(&quot;xaci-visualization&quot;)</code> — plotting time series,
+component breakdowns, distributions and maps.</li>
+<li><code>vignette(&quot;xaci-terra-engine&quot;)</code> — the memory-safe
+<code>engine = &quot;terra&quot;</code> option for whole-country, multi-decade,
+hourly historical periods.</li>
+<li><code>vignette(&quot;xaci-admin-levels&quot;)</code> — aggregating results at
+the administrative unit level (e.g. French departments) instead of
+nationally.</li>
+</ul>
+</div>
+
+
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
